@@ -31,6 +31,7 @@ class Subproject:
 		return True
 
 SUBDIRS = [
+	Subproject('tier0')
 ]
 
 def options(opt):
@@ -58,7 +59,7 @@ def options(opt):
 
 		opt.add_subproject(i.name)
 
-	opt.load('xcompile compiler_cxx compiler_c sdl2 clang_compilation_database strip_on_install waf_unit_test msdev msvs')
+	opt.load('xcompile compiler_cxx compiler_c clang_compilation_database strip_on_install waf_unit_test msdev msvs')
 	if sys.platform == 'win32':
 		opt.load('msvc')
 	opt.load('reconfigure')
@@ -116,7 +117,11 @@ def configure(conf):
 	]
 
 	includes = [
-		os.path.abspath('common/')
+		os.path.abspath('public'),
+		os.path.abspath('public/tier0'),
+		os.path.abspath('public/tier1'),
+		os.path.abspath('thirdparty/SDL2/include'),
+		os.path.abspath('common')
 	]
 
 	cflags, linkflags = conf.get_optimization_flags()
@@ -168,6 +173,14 @@ def configure(conf):
 			for i in a:
 				conf.check_cc(lib = i)
 
+	# CSGO specific defines
+	conf.env.append_unique('DEFINES', [
+		'CSTRIKE_REL_BUILD',
+		'RAD_TELEMETRY_DISABLED', # removed for partner depot
+		'CSTRIKE15'
+	])
+
+	conf.define_cond('COMPILER_GCC', conf.env.COMPILER_CC == 'gcc')
 
 	if conf.options.DEDICATED:
 		conf.options.SDL = False
@@ -186,13 +199,17 @@ def configure(conf):
 	if conf.options.ALLOW64:
 		conf.define('PLATFORM_64BITS', 1)
 
-    #TODO: other platforms support
+	#TODO: other platforms support
+	if conf.env.DEST_OS != 'win32': # POSIX
+		conf.env.append_unique('DEFINES', [
+			'POSIX=1', '_POSIX=1',
+			'GNUC'
+		])
+
 	if conf.env.DEST_OS == 'linux':
-		conf.define('_GLIBCXX_USE_CXX11_ABI',0)
+		conf.define('_GLIBCXX_USE_CXX11_ABI',0) # TODO:remove this till we remove protobuf
 		conf.env.append_unique('DEFINES', [
 			'LINUX=1', '_LINUX=1',
-			'POSIX=1', '_POSIX=1', 'PLATFORM_POSIX=1',
-			'GNUC',
 			'_DLL_EXT=.so'
 		])
 
