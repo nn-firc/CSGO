@@ -123,6 +123,13 @@ def configure(conf):
 		os.path.abspath('common')
 	]
 
+	flags = []
+
+	if conf.env.COMPILER_CC != 'msvc' and conf.env.DEST_OS not in ['darwin','android']:
+		flags += ['-march=native']
+		if conf.env.DEST_CPU in ['x86', 'x86_64']:
+			flags += ['-mfpmath=sse']
+
 	cflags, linkflags = conf.get_optimization_flags()
 
 	# And here C++ flags starts to be treated separately
@@ -138,9 +145,9 @@ def configure(conf):
 		cxxflags += conf.filter_cxxflags(compiler_optional_flags + cxx_compiler_optional_flags, cflags)
 		cflags += conf.filter_cflags(compiler_optional_flags + c_compiler_optional_flags, cflags)
 
-	conf.env.append_unique('CFLAGS', cflags)
-	conf.env.append_unique('CXXFLAGS', cxxflags)
-	conf.env.append_unique('LINKFLAGS', linkflags)
+	conf.env.append_unique('CFLAGS', cflags + flags)
+	conf.env.append_unique('CXXFLAGS', cxxflags + flags)
+	conf.env.append_unique('LINKFLAGS', linkflags + flags)
 	conf.env.append_unique('INCLUDES', includes)
 
 	if conf.env.DEST_OS != 'win32':

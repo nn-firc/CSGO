@@ -389,7 +389,7 @@ static bool CheckRDTSCTechnology(void)
 }
 
 
-static tchar s_CpuVendorID[ 13 ] = "unknown";
+static tchar s_CpuVendorID[ 18 ] = "unknown";
 
 bool s_bCpuVendorIdInitialized = false;
 
