@@ -8,12 +8,7 @@ def configure(conf):
 	conf.define('CROSS_PLATFORM_VERSION', 1)
 	conf.define_cond('THREAD_MUTEX_TRACING_ENABLED', conf.env.DEST_OS == 'win32')
 
-
 def build(bld):
-	includes = [
-		'.'
-	]
-
 	source = [
 		'../unitlib/unitlib.cpp',
 		'assert_dialog.cpp',
@@ -70,7 +65,6 @@ def build(bld):
 	bld.shlib(
 		target = 'tier0',
 		features = 'cxx',
-		includes = includes,
 		source = source,
 		install_path = bld.env.LIBDIR,
 		subsystem = bld.env.MSVC_SUBSYSTEM

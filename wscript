@@ -33,6 +33,8 @@ class Subproject:
 SUBDIRS = [
 	# base
 	Subproject('tier0'),
+	Subproject('tier1'),
+	Subproject('interfaces'),
 
 	# client
 	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED)
@@ -112,7 +114,10 @@ def configure(conf):
 	]
 
 	cxx_compiler_optional_flags = [
-		'-Wno-narrowing'
+		'-Wno-narrowing',
+		# newer than C++11 warnings
+		'-Wno-write-strings',
+		'-Wno-ignored-attributes'
 	]
 
 	c_compiler_optional_flags = [

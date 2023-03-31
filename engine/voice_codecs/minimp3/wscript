@@ -7,9 +7,11 @@ def configure(conf):
 	pass
 
 def build(bld):
-	bld.stlib(
+	bld.shlib(
 		target = 'vaudio_miles', # replace vaudio_miles
 		features = 'cxx',
-		source = 'vaudio_minimp3.cpp',
+		source = ['vaudio_minimp3.cpp','../../../public/tier0/memoverride.cpp'],
+		use = 'tier0 tier1',
+		install_path = bld.env.LIBDIR,
 		subsystem = bld.env.MSVC_SUBSYSTEM
 	)
