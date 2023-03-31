@@ -212,6 +212,13 @@ def configure(conf):
 			'_DLL_EXT=.so'
 		])
 
+	if conf.env.DEST_OS == 'darwin':
+		conf.env.append_unique('DEFINES', [
+			'OSX=1', '_OSX=1',
+			'_DLL_EXT=.dylib'
+		])
+
+
 	if conf.options.BUILD_TYPE == 'debug':
 		conf.env.append_unique('DEFINES', [
 			'DEBUG', '_DEBUG'
