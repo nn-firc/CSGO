@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <tier0/platform.h>
 #include <errno.h>
+#ifdef OSX
+#include <sys/sysctl.h>
+#endif
 
 class TimeVal
 {

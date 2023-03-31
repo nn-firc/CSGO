@@ -218,7 +218,6 @@ def configure(conf):
 			'_DLL_EXT=.dylib'
 		])
 
-
 	if conf.options.BUILD_TYPE == 'debug':
 		conf.env.append_unique('DEFINES', [
 			'DEBUG', '_DEBUG'
