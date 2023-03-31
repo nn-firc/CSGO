@@ -292,10 +292,8 @@ public:
 	IAudioStream*	CreateMP3StreamDecoder ( IAudioStreamEvent *pEventHandler ) override;
 	void			DestroyMP3StreamDecoder( IAudioStream *pDecoder ) override;
 
-#ifdef GAME_DESOLATION
 	void*			CreateMilesAudioEngine() override;
 	void			DestroyMilesAudioEngine( void *pEngine ) override;
-#endif
 
 	static CVAudioMiniMP3 &GetInstance();
 };
@@ -313,7 +311,6 @@ void CVAudioMiniMP3::DestroyMP3StreamDecoder( IAudioStream *pDecoder )
 }
 
 
-#ifdef GAME_DESOLATION
 void *CVAudioMiniMP3::CreateMilesAudioEngine()
 {
 	// Only used for Bink videos
@@ -323,7 +320,6 @@ void CVAudioMiniMP3::DestroyMilesAudioEngine( [[maybe_unused]] void *pEngine )
 {
 	// This function is never called because CreateMilesAudioEngine returns nullptr
 }
-#endif
 
 
 CVAudioMiniMP3 &CVAudioMiniMP3::GetInstance()

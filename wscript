@@ -31,7 +31,11 @@ class Subproject:
 		return True
 
 SUBDIRS = [
-	Subproject('tier0')
+	# base
+	Subproject('tier0'),
+
+	# client
+	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED)
 ]
 
 def options(opt):
