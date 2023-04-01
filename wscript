@@ -37,7 +37,11 @@ SUBDIRS = [
 	Subproject('interfaces'),
 
 	# client
-	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED)
+	Subproject('vphysics',						lambda x: not x.env.DEDICATED),
+	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED),
+
+	# thirdparty
+	Subproject('thirdparty/joltphysics/Jolt',	lambda x: not x.env.DEDICATED)
 ]
 
 def options(opt):
