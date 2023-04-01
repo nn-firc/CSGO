@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+def options(opt):
+	pass
+
+def configure(conf):
+	pass
+
+def build(bld):
+	source = [
+		'beamsegdraw.cpp',
+		'defaultfilesystem.cpp',
+		'fileutils.cpp',
+		'keybindings.cpp',
+		'../public/map_utils.cpp',
+		'../public/materialsystem/MaterialSystemUtil.cpp',
+		'meshutils.cpp',
+		'p4helpers.cpp',
+		'renderutils.cpp',
+		'riff.cpp',
+		'soundutils.cpp',
+		'tier2.cpp',
+		'tier2_logging.cpp',
+		'tokenreader.cpp',
+		'util_init.cpp',
+		'utlstreambuffer.cpp',
+		'vconfig.cpp',
+		'schemaclassbinding.cpp',
+		'socketcreator.cpp',
+		'resourceprecacher.cpp',
+		'interval.cpp'
+	]
+
+	bld.stlib(
+		target = 'tier2',
+		features = 'cxx',
+		includes = '../public/tier2',
+		source = source,
+		subsystem = bld.env.MSVC_SUBSYSTEM
+	)

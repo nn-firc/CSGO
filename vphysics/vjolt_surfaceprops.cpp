@@ -37,12 +37,6 @@ static const JoltKVSchemaProp_t kSurfacePropDescs[] =
 	{ "ImpactHardThreshold",				KVSCHEMA_DESC( JoltSurfaceProp, data.audio.hardThreshold ),						FillFloatProp },
 	{ "AudioHardMinVelocity",				KVSCHEMA_DESC( JoltSurfaceProp, data.audio.hardVelocityThreshold ),				FillFloatProp },
 
-#ifdef GAME_CSGO_OR_NEWER
-	{ "HighPitchOcclusion",					KVSCHEMA_DESC( JoltSurfaceProp, data.audio.highPitchOcclusion ),				FillFloatProp },
-	{ "MidPitchOcclusion",					KVSCHEMA_DESC( JoltSurfaceProp, data.audio.midPitchOcclusion ),					FillFloatProp },
-	{ "LowPitchOcclusion",					KVSCHEMA_DESC( JoltSurfaceProp, data.audio.lowPitchOcclusion ),					FillFloatProp },
-#endif
-
 	// Sound Properties
 #ifdef GAME_ASW_OR_NEWER
 	{ "StepLeft",							KVSCHEMA_DESC( JoltSurfaceProp, data.sounds.walkStepLeft ),						FillSoundProp },
@@ -81,10 +75,6 @@ static const JoltKVSchemaProp_t kSurfacePropDescs[] =
 #endif
 	{ "GameMaterial",						KVSCHEMA_DESC( JoltSurfaceProp, data.game.material ),							FillGameMaterialProp },
 	{ "Climbable",							KVSCHEMA_DESC( JoltSurfaceProp, data.game.climbable ),							FillUnsignedCharProp },
-#ifdef GAME_CSGO_OR_NEWER
-	{ "HideTargetID",						KVSCHEMA_DESC( JoltSurfaceProp, data.game.hidetargetid ),						FillBoolProp },
-	{ "DamageLossPercentPerPenetration",	KVSCHEMA_DESC( JoltSurfaceProp, data.game.damageLossPercentPerPenetration ),	FillFloatProp },
-#endif
 };
 
 //-------------------------------------------------------------------------------------------------

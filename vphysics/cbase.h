@@ -27,7 +27,9 @@
 #include "tier0/logging.h"
 #endif
 
-#if defined( GAME_SDK2013 )
+#if defined( GAME_CSGO )
+#include "compat/compat_csgo.h"
+#elif defined( GAME_SDK2013 )
 #include "compat/compat_sdk2013.h"
 #elif defined( GAME_ASW )
 #include "compat/compat_asw.h"
