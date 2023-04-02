@@ -39,6 +39,7 @@ SUBDIRS = [
 	Subproject('interfaces'),
 	Subproject('vstdlib'),
 	Subproject('mathlib'),
+	Subproject('appframework'),
 
 	# client
 	Subproject('vphysics',						lambda x: not x.env.DEDICATED),
