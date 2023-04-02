@@ -2883,11 +2883,7 @@ void CStdMemAlloc::SetCRTAllocFailed( size_t nSize )
 #endif // _PS3
 
 	char buffer[256];
-#ifdef COMPILER_GCC
 	_snprintf( buffer, sizeof( buffer ), "***** OUT OF MEMORY! attempted allocation size: %u ****\n", nSize );
-#else
-	_snprintf( buffer, sizeof( buffer ), "***** OUT OF MEMORY! attempted allocation size: %u ****\n", nSize );
-#endif // COMPILER_GCC
 
 #ifdef _X360 
 	XBX_OutputDebugString( buffer );

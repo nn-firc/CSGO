@@ -41,6 +41,12 @@ SUBDIRS = [
 	Subproject('mathlib'),
 	Subproject('appframework'),
 
+	# launcher
+	Subproject('launcher_main',					lambda x: not x.env.DEDICATED),
+	Subproject('launcher',						lambda x: not x.env.DEDICATED),
+	Subproject('dedicated_main',				lambda x: x.env.DEDICATED),
+	Subproject('dedicated',						lambda x: x.env.DEDICATED),
+
 	# client
 	Subproject('vphysics',						lambda x: not x.env.DEDICATED),
 	Subproject('togl',							lambda x: not x.env.DEDICATED),
@@ -168,6 +174,7 @@ def configure(conf):
 
 	if conf.env.DEST_OS != 'win32':
 		conf.check_cc(lib='dl', mandatory=False)
+		conf.check_cc(lib='SDL2', mandatory=False)
 
 		if not conf.env.LIB_M: # HACK: already added in xcompile!
 			conf.check_cc(lib='m')

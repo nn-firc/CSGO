@@ -32,7 +32,7 @@ def build(bld):
 		target = 'togl',
 		features = 'cxx',
 		source = source,
-		use = 'tier0 tier1 tier2 interfaces vstdlib mathlib',
+		use = 'tier0 tier1 tier2 interfaces vstdlib mathlib appframework SDL2',
 		install_path = bld.env.LIBDIR,
 		subsystem = bld.env.MSVC_SUBSYSTEM
 	)
