@@ -682,7 +682,7 @@ typedef void * HINSTANCE;
 #define VALVE_RAND_MAX 0x7fff
 
 // Maximum and minimum representable values
-#ifndef PLATFORM_OSX
+#ifdef PLATFORM_WINDOWS
 
 #if _MSC_VER >= 1800 // VS 2013 or higher
 	// Copied from stdint.h
@@ -720,7 +720,7 @@ typedef void * HINSTANCE;
 #define  UINT32_MIN			0
 #define  UINT64_MIN			0
 
-#endif // PLATFORM_OSX
+#endif // PLATFORM_WINDOWS
 
 #ifndef  UINT_MIN
 #define  UINT_MIN			UINT32_MIN

@@ -35,12 +35,14 @@ SUBDIRS = [
 	Subproject('tier0'),
 	Subproject('tier1'),
 	Subproject('tier2'),
+	Subproject('tier3'),
 	Subproject('interfaces'),
 	Subproject('vstdlib'),
 	Subproject('mathlib'),
 
 	# client
 	Subproject('vphysics',						lambda x: not x.env.DEDICATED),
+	Subproject('togl',							lambda x: not x.env.DEDICATED),
 	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED),
 
 	# thirdparty
@@ -58,11 +60,8 @@ def options(opt):
 
 	grp = opt.add_option_group('Renderers options')
 
-	grp.add_option('--use-sdl', action = 'store', dest = 'SDL', default = sys.platform in ['linux','android'],
+	grp.add_option('--use-sdl', action = 'store_true', dest = 'SDL', default = sys.platform in ['linux','android'],
 		help = 'build with SDL [default: %default]')
-
-	grp.add_option('--enable-togl', action='store_true', dest='TOGL', default = sys.platform != 'win32',
-		help = 'Direct3D -> OpenGL translation layer [default: %default]')
 
 	opt.load('compiler_optimizations subproject')
 
@@ -208,11 +207,11 @@ def configure(conf):
 		conf.options.SDL = False
 		conf.define('DEDICATED', 1)
 
-	if conf.options.TOGL:
-		conf.env.append_unique('DEFINES', [
-			'DX_TO_GL_ABSTRACTION',
-			'GL_GLEXT_PROTOTYPES'
-		])
+	# TOGL
+	conf.env.append_unique('DEFINES', [
+		'DX_TO_GL_ABSTRACTION',
+		'GL_GLEXT_PROTOTYPES'
+	])
 
 	if conf.options.SDL:
 		conf.env.SDL = True
@@ -228,11 +227,16 @@ def configure(conf):
 			'GNUC'
 		])
 
-	if conf.env.DEST_OS == 'linux':
+	if conf.env.DEST_OS in ['linux','android']:
 		conf.define('_GLIBCXX_USE_CXX11_ABI',0) # TODO:remove this till we remove protobuf
 		conf.env.append_unique('DEFINES', [
 			'LINUX=1', '_LINUX=1',
 			'_DLL_EXT=.so'
+		])
+
+	if conf.env.DEST_OS == 'android':
+		conf.env.append_unique('DEFINES', [
+			'ANDROID=1', '_ANDROID=1',
 		])
 
 	if conf.env.DEST_OS == 'darwin':
