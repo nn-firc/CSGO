@@ -8,17 +8,14 @@ def configure(conf):
 
 def build(bld):
 	source = [
-		'FakeSteamAPI_ContextProvider.cpp',
-		'FakeSteamAPI_Core.cpp',
-		'FakeSteamAPI_LogSys.cpp',
-		'FakeSteamAPI_Settings.cpp',
-		'FakeSteamAPI_Utilities.cpp',
+		'fakesteamapi.cpp',
 		'../public/tier0/memoverride.cpp'
 	]
 
 	bld.shlib(
 		target = 'steam_api',
 		features = 'cxx',
+		includes = '../public/steam',
 		source = source,
 		use = 'tier0',
 		install_path = bld.env.LIBDIR,
