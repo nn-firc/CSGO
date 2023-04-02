@@ -39,6 +39,7 @@ SUBDIRS = [
 	Subproject('interfaces'),
 	Subproject('vstdlib'),
 	Subproject('mathlib'),
+	Subproject('steamapi'),
 	Subproject('appframework'),
 
 	# launcher

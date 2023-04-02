@@ -4,21 +4,23 @@ def options(opt):
 	pass
 
 def configure(conf):
-	conf.define('LAUNCHERONLY',1)
+	pass
 
 def build(bld):
 	source = [
-		'../public/filesystem_init.cpp',
-		'launcher.cpp',
-		'reslistgenerator.cpp',
+		'FakeSteamAPI_ContextProvider.cpp',
+		'FakeSteamAPI_Core.cpp',
+		'FakeSteamAPI_LogSys.cpp',
+		'FakeSteamAPI_Settings.cpp',
+		'FakeSteamAPI_Utilities.cpp',
 		'../public/tier0/memoverride.cpp'
 	]
 
 	bld.shlib(
-		target = 'launcher',
+		target = 'steam_api',
 		features = 'cxx',
 		source = source,
-		use = 'tier0 tier1 tier2 tier3 interfaces vstdlib appframework togl steam_api SDL2',
+		use = 'tier0',
 		install_path = bld.env.LIBDIR,
 		subsystem = bld.env.MSVC_SUBSYSTEM
 	)
