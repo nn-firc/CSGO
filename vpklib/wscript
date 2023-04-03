@@ -7,14 +7,10 @@ def configure(conf):
 	pass
 
 def build(bld):
-	source = [
-		'fakesteamapi.cpp'
-	]
 
 	bld.stlib(
-		target = 'steam_api',
+		target = 'vpklib',
 		features = 'cxx',
-		includes = '../public/steam',
-		source = source,
+		source = 'packedstore.cpp',
 		subsystem = bld.env.MSVC_SUBSYSTEM
 	)

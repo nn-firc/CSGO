@@ -1410,7 +1410,7 @@ FSReturnCode_t FileSystem_GetFileSystemDLLName( char *pFileSystemDLL, int nMaxLe
 #if defined( _PS3 )
 	Q_snprintf( pFileSystemDLL, nMaxLen, "%s%cfilesystem_stdio" DLL_EXT_STRING, g_pPS3PathInfo->PrxPath(), CORRECT_PATH_SEPARATOR );
 #else
-	Q_snprintf( pFileSystemDLL, nMaxLen, "%s%cfilesystem_stdio" DLL_EXT_STRING, executablePath, CORRECT_PATH_SEPARATOR );
+	Q_snprintf( pFileSystemDLL, nMaxLen, "%s%clibfilesystem_stdio" DLL_EXT_STRING, executablePath, CORRECT_PATH_SEPARATOR );
 #endif
 
 	return FS_OK;

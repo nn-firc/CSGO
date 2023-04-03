@@ -41,6 +41,10 @@ SUBDIRS = [
 	Subproject('mathlib'),
 	Subproject('steamapi'),
 	Subproject('appframework'),
+	Subproject('vpklib'),
+
+	# bin
+	Subproject('filesystem'),
 
 	# launcher
 	Subproject('launcher_main',					lambda x: not x.env.DEDICATED),
