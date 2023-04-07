@@ -1870,7 +1870,7 @@ void CRenderTexturesListViewPanel::RenderTile( int iTile, int x, int y )
 	char const *szTxFormat = kv->GetString( KEYNAME_FORMAT );
 
 	int iTxFormatLen = strlen( szTxFormat );
-	char *szTxFormatSuffix = "";
+	char *szTxFormatSuffix = (char*)"";
 	if ( iTxFormatLen > 4 )
 	{
 fmtlenreduce:
@@ -1895,7 +1895,7 @@ fmtlenreduce:
 			if ( !*szTxFormatSuffix )
 			{
 				iTxFormatLen --;
-				szTxFormatSuffix = "F";
+				szTxFormatSuffix = (char*)"F";
 				goto fmtlenreduce;
 			}
 			break;

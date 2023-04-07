@@ -139,7 +139,6 @@ def configure(conf):
 
 	cxx_compiler_optional_flags = [
 		'-Wno-narrowing',
-		'-Werror=write-strings',
 		'-Wno-ignored-attributes'
 	]
 
