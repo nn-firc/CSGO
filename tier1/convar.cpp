@@ -163,7 +163,7 @@ CVarDLLIdentifier_t ConCommandBase::GetDLLIdentifier() const
 //-----------------------------------------------------------------------------
 void ConCommandBase::Create( const char *pName, const char *pHelpString /*= 0*/, int flags /*= 0*/ )
 {
-	static char *empty_string = "";
+	static char *empty_string = (char*)"";
 
 	m_bRegistered = false;
 
@@ -871,7 +871,7 @@ void ConVar::InternalSetValue( const char *value )
 	float flOldValue = ObscureConvarValue( m_Value.m_fValue, ( intp ) this );
 	val = (char *)value;
 	if ( !val )
-		val = "";
+		val = (char*)"";
 
 	if ( !InternalSetColorFromString( value ) )
 	{
@@ -1075,7 +1075,7 @@ void ConVar::Create( const char *pName, const char *pDefaultValue, int flags /*=
 	const char *pHelpString /*= NULL*/, bool bMin /*= false*/, float fMin /*= 0.0*/,
 	bool bMax /*= false*/, float fMax /*= false*/, FnChangeCallback_t callback /*= NULL*/ )
 {
-	static char *empty_string = "";
+	static char *empty_string = (char*)"";
 
 	m_pParent = this;
 
@@ -1238,7 +1238,7 @@ const char *ConVar::GetDefault( void ) const
 
 void ConVar::SetDefault( const char *pszDefault ) 
 { 
-	static char *empty_string = "";
+	static char *empty_string = (char*)"";
 	m_pszDefaultValue = pszDefault ? pszDefault : empty_string;
 	Assert( m_pszDefaultValue );
 }

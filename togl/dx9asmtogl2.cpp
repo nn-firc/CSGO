@@ -37,14 +37,14 @@
 //#define Assert(n) if( !(n) ){ TranslationError(); }
 
 
-static char *g_szVecZeros[] = { NULL, "0.0", "vec2( 0.0, 0.0 )", "vec3( 0.0, 0.0, 0.0 )", "vec4( 0.0, 0.0, 0.0, 0.0 )" };
-static char *g_szVecOnes[] = { NULL, "1.0", "vec2( 1.0, 1.0 )", "vec3( 1.0, 1.0, 1.0 )", "vec4( 1.0, 1.0, 1.0, 1.0 )" };
-static char *g_szDefaultSwizzle = "xyzw";
-static char *g_szDefaultSwizzleStrings[] = { "x", "y", "z", "w" };
-static char *g_szSamplerStrings[] = { "2D", "CUBE", "3D" };
+static char *g_szVecZeros[] = { NULL, (char*)"0.0", (char*)"vec2( 0.0, 0.0 )", (char*)"vec3( 0.0, 0.0, 0.0 )", (char*)"vec4( 0.0, 0.0, 0.0, 0.0 )" };
+static char *g_szVecOnes[] = { NULL, (char*)"1.0", (char*)"vec2( 1.0, 1.0 )", (char*)"vec3( 1.0, 1.0, 1.0 )", (char*)"vec4( 1.0, 1.0, 1.0, 1.0 )" };
+static char *g_szDefaultSwizzle = (char*)"xyzw";
+static char *g_szDefaultSwizzleStrings[] = { (char*)"x", (char*)"y", (char*)"z", (char*)"w" };
+static char *g_szSamplerStrings[] = { (char*)"2D", (char*)"CUBE", (char*)"3D" };
 
-static const char *g_pAtomicTempVarName = "atomic_temp_var";
-static const char *g_pTangentAttributeName = "g_tangent";
+static const char *g_pAtomicTempVarName = (char*)"atomic_temp_var";
+static const char *g_pTangentAttributeName = (char*)"g_tangent";
 
 int __cdecl SortInts( const int *a, const int *b )
 {
@@ -3625,8 +3625,8 @@ int D3DToGL::TranslateShader( uint32* code, CUtlBuffer *pBufDisassembledCode, bo
 		StrcatToParamCode( "vec4 va_r;\n" );
 	}
 
-	char *pTempVarStr = "TEMP";
-	pTempVarStr = "vec4";
+	char *pTempVarStr = (char*)"TEMP";
+	pTempVarStr = (char*)"vec4";
 	
 	// Declare temps in Param code buffer
 	for( int i=0; i<32; i++ )

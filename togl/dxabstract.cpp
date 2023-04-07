@@ -659,7 +659,7 @@ IDirect3DCubeTexture9::~IDirect3DCubeTexture9()
 			if (m_surfZero[face])
 			{
 				Assert( m_surfZero[face]->m_device == m_device );
-				ULONG refc = m_surfZero[face]->Release( 0, "~IDirect3DCubeTexture9 public release (surfZero)");
+				ULONG refc = m_surfZero[face]->Release( 0, (char*)"~IDirect3DCubeTexture9 public release (surfZero)");
 				if ( refc!=0 )
 				{
 					GLMPRINTF(( "-A- ~IDirect3DCubeTexture9 seeing non zero refcount on surfzero[%d] => %d ", face, refc ));
@@ -857,7 +857,7 @@ IDirect3DVolumeTexture9::~IDirect3DVolumeTexture9()
 		
 		if (m_surfZero)
 		{
-			ULONG refc = m_surfZero->Release( 0, "~IDirect3DVolumeTexture9 public release (surfZero)" ); (void)refc;
+			ULONG refc = m_surfZero->Release( 0, (char*)"~IDirect3DVolumeTexture9 public release (surfZero)" ); (void)refc;
 			Assert( !refc );
 			m_surfZero = NULL;
 		}
@@ -2379,7 +2379,7 @@ HRESULT	IDirect3DDevice9::Create( IDirect3DDevice9Params *params )
 		true,														// lockable
 		&m_pDefaultColorSurface,										// ppSurface
 		NULL,														// shared handle
-		"InternalRT0"
+		(char*)"InternalRT0"
 		);
 
 	if (result != S_OK)
@@ -2510,12 +2510,12 @@ IDirect3DDevice9::~IDirect3DDevice9()
 	SetDepthStencilSurface( NULL );
 	if ( m_pDefaultColorSurface )
 	{
-		m_pDefaultColorSurface->Release( 0, "IDirect3DDevice9::~IDirect3DDevice9 release color surface" ); 
+		m_pDefaultColorSurface->Release( 0, (char*)"IDirect3DDevice9::~IDirect3DDevice9 release color surface" ); 
 		m_pDefaultColorSurface = NULL;
 	}
 	if ( m_pDefaultDepthStencilSurface )
 	{
-		m_pDefaultDepthStencilSurface->Release( 0, "IDirect3DDevice9::~IDirect3DDevice9 release depth surface" ); 
+		m_pDefaultDepthStencilSurface->Release( 0, (char*)"IDirect3DDevice9::~IDirect3DDevice9 release depth surface" ); 
 		m_pDefaultDepthStencilSurface = NULL;
 	}
 	
@@ -2581,7 +2581,7 @@ HRESULT IDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	// release old color surface if it's there..
 	if ( m_pDefaultColorSurface )
 	{
-		ULONG refc = m_pDefaultColorSurface->Release( 0, "IDirect3DDevice9::Reset public release color surface" ); (void)refc;
+		ULONG refc = m_pDefaultColorSurface->Release( 0, (char*)"IDirect3DDevice9::Reset public release color surface" ); (void)refc;
 		Assert( !refc );
 		m_pDefaultColorSurface = NULL;
 	}
@@ -2626,7 +2626,7 @@ HRESULT IDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	// release old depthstencil surface if it's there..
 	if ( m_pDefaultDepthStencilSurface )
 	{
-		ULONG refc = m_pDefaultDepthStencilSurface->Release( 0, "IDirect3DDevice9::Reset public release depthstencil surface" ); (void)refc;
+		ULONG refc = m_pDefaultDepthStencilSurface->Release( 0, (char*)"IDirect3DDevice9::Reset public release depthstencil surface" ); (void)refc;
 		Assert(!refc);
 		m_pDefaultDepthStencilSurface = NULL;
 	}
@@ -3326,12 +3326,12 @@ HRESULT IDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurfa
 	// we now know that the new surf is not the same as the old surf.
 	// you can't assume either one is non NULL here though.
 	
-		m_pRenderTargets[RenderTargetIndex]->Release( 1, "-A  SetRenderTarget private release" );
+		m_pRenderTargets[RenderTargetIndex]->Release( 1, (char*)"-A  SetRenderTarget private release" );
 	}
 
 	if (pRenderTarget)
 	{
-		pRenderTarget->AddRef( 1, "+A  SetRenderTarget private addref"  );						// again, private refcount being raised
+		pRenderTarget->AddRef( 1, (char*)"+A  SetRenderTarget private addref"  );						// again, private refcount being raised
 	}
 	m_pRenderTargets[RenderTargetIndex] = pRenderTarget;	
 	
@@ -3381,7 +3381,7 @@ HRESULT IDirect3DDevice9::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurfa
 		return D3DERR_INVALIDCALL;
 
 	// safe because of early exit on NULL above
-	m_pRenderTargets[ RenderTargetIndex ]->AddRef(0, "+B GetRenderTarget public addref");	// per http://msdn.microsoft.com/en-us/library/bb174404(VS.85).aspx
+	m_pRenderTargets[ RenderTargetIndex ]->AddRef(0, (char*)"+B GetRenderTarget public addref");	// per http://msdn.microsoft.com/en-us/library/bb174404(VS.85).aspx
 	
 	*ppRenderTarget = m_pRenderTargets[ RenderTargetIndex ];
 	
@@ -3514,13 +3514,13 @@ HRESULT IDirect3DDevice9::SetDepthStencilSurface( IDirect3DSurface9* pNewZStenci
 
 	if ( pNewZStencil )
 	{
-		pNewZStencil->AddRef(1, "+A  SetDepthStencilSurface private addref");
+		pNewZStencil->AddRef(1, (char*)"+A  SetDepthStencilSurface private addref");
 	}
 
 	if ( m_pDepthStencil )
 	{
 		// Note this Release() could cause the surface to be deleted!
-		m_pDepthStencil->Release(1, "-A  SetDepthStencilSurface private release");
+		m_pDepthStencil->Release(1, (char*)"-A  SetDepthStencilSurface private release");
 	}
 	
 	m_pDepthStencil = pNewZStencil;
@@ -3545,7 +3545,7 @@ HRESULT IDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilS
 		return D3DERR_NOTFOUND;
 	}
 
-	m_pDepthStencil->AddRef(0, "+B  GetDepthStencilSurface public addref");			// per http://msdn.microsoft.com/en-us/library/bb174384(VS.85).aspx
+	m_pDepthStencil->AddRef(0, (char*)"+B  GetDepthStencilSurface public addref");			// per http://msdn.microsoft.com/en-us/library/bb174384(VS.85).aspx
 
 	*ppZStencilSurface = m_pDepthStencil;
 
@@ -4169,7 +4169,7 @@ HRESULT IDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction, IDirect3DVe
 						
 			// find the highwater mark..
 						
-			char *highWaterPrefix = "//HIGHWATER-";		// try to arrange this so it can work with pure GLSL if needed
+			char *highWaterPrefix = (char*)"//HIGHWATER-";		// try to arrange this so it can work with pure GLSL if needed
 			char *highWaterStr = strstr( (char *)transbuf.Base(), highWaterPrefix );
 			if (highWaterStr)
 			{
@@ -4186,7 +4186,7 @@ HRESULT IDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction, IDirect3DVe
 				Assert(!"couldn't find highwater mark in vertex shader");
 			}
 
-			char *highWaterBonePrefix = "//HIGHWATERBONE-";		// try to arrange this so it can work with pure GLSL if needed
+			char *highWaterBonePrefix = (char*)"//HIGHWATERBONE-";		// try to arrange this so it can work with pure GLSL if needed
 			char *highWaterBoneStr = strstr( (char *)transbuf.Base(), highWaterBonePrefix );
 			if (highWaterBoneStr)
 			{
@@ -4205,7 +4205,7 @@ HRESULT IDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction, IDirect3DVe
 			}
 									
 			// find the attrib map..
-			char *attribMapPrefix = "//ATTRIBMAP-";		// try to arrange this so it can work with pure GLSL if needed
+			char *attribMapPrefix = (char*)"//ATTRIBMAP-";		// try to arrange this so it can work with pure GLSL if needed
 			char *attribMapStr = strstr( (char *)transbuf.Base(), attribMapPrefix );
 			
 			if (attribMapStr)

@@ -53,12 +53,12 @@ SUBDIRS = [
 	Subproject('dedicated',									lambda x: x.env.DEDICATED),
 
 	# client
-	Subproject('vphysics',									lambda x: not x.env.DEDICATED),
+#	Subproject('vphysics',									lambda x: not x.env.DEDICATED),
 	Subproject('togl',										lambda x: not x.env.DEDICATED),
 	Subproject('engine/voice_codecs/minimp3',				lambda x: not x.env.DEDICATED),
 
 	# thirdparty
-	Subproject('thirdparty/joltphysics/Jolt',				lambda x: not x.env.DEDICATED),
+#	Subproject('thirdparty/joltphysics/Jolt',				lambda x: not x.env.DEDICATED),
 	Subproject('thirdparty/protobuf-2.6.1/google/protobuf')
 ]
 
@@ -84,7 +84,7 @@ def options(opt):
 
 		opt.add_subproject(i.name)
 
-	opt.load('xcompile compiler_cxx compiler_c clang_compilation_database strip_on_install waf_unit_test msdev msvs')
+	opt.load('xcompile compiler_c compiler_cxx clang_compilation_database strip_on_install waf_unit_test msdev msvs')
 	if sys.platform == 'win32':
 		opt.load('msvc')
 	opt.load('reconfigure')
@@ -103,7 +103,7 @@ def configure(conf):
 	if conf.env.COMPILER_CC == 'msvc':
 		conf.load('msvc_pdb')
 
-	conf.load('msvs msdev subproject gitversion clang_compilation_database strip_on_install waf_unit_test enforce_pic')
+	conf.load('msvs msdev subproject gitversion clang_compilation_database strip_on_install waf_unit_test enforce_pic enforce_cxx11')
 
 	# Force XP compatibility, all build targets should add subsystem=bld.env.MSVC_SUBSYSTEM
 	if conf.env.MSVC_TARGETS[0] == 'x86':
@@ -128,14 +128,18 @@ def configure(conf):
 
 	conf.load('force_32bit')
 
+	enforce_cxx11 = True # modern defaults
+
+	conf.check_cxx11(enforce_cxx11)
+
 	compiler_optional_flags = [
 		'-fdiagnostics-color=always'
 	]
 
 	cxx_compiler_optional_flags = [
-		'-std=c++11',
-		'-fpermissive',
-		'-Wno-narrowing'
+		'-Wno-narrowing',
+		'-Werror=write-strings',
+		'-Wno-ignored-attributes'
 	]
 
 	c_compiler_optional_flags = [

@@ -1127,7 +1127,7 @@ bool GrabSourceMutex()
 	// If it's NULL, or it doesn't exist, or it isn't a directory, fallback to /tmp.
 	struct stat buf;
 	if( !tmpdir || stat( tmpdir, &buf ) || !S_ISDIR ( buf.st_mode ) )
-		tmpdir = "/tmp";
+		tmpdir = (char*)"/tmp";
 
 	V_snprintf( g_lockFilename, sizeof(g_lockFilename), "%s/source_engine_%lu.lock", tmpdir, gameCRC );
 

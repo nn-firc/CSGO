@@ -55,17 +55,17 @@ public:
 // List of character conversions
 //-----------------------------------------------------------------------------
 BEGIN_CUSTOM_CHAR_CONVERSION( CUtlCStringConversion, s_StringCharConversion, "\"", '\\' )
-	{ '\n', "n" },
-	{ '\t', "t" },
-	{ '\v', "v" },
-	{ '\b', "b" },
-	{ '\r', "r" },
-	{ '\f', "f" },
-	{ '\a', "a" },
-	{ '\\', "\\" },
-	{ '\?', "\?" },
-	{ '\'', "\'" },
-	{ '\"', "\"" },
+	{ '\n', (char*)"n" },
+	{ '\t', (char*)"t" },
+	{ '\v', (char*)"v" },
+	{ '\b', (char*)"b" },
+	{ '\r', (char*)"r" },
+	{ '\f', (char*)"f" },
+	{ '\a', (char*)"a" },
+	{ '\\', (char*)"\\" },
+	{ '\?', (char*)"\?" },
+	{ '\'', (char*)"\'" },
+	{ '\"', (char*)"\"" },
 END_CUSTOM_CHAR_CONVERSION( CUtlCStringConversion, s_StringCharConversion, "\"", '\\' )
 
 CUtlCharConversion *GetCStringCharConversion()
@@ -74,7 +74,7 @@ CUtlCharConversion *GetCStringCharConversion()
 }
 
 BEGIN_CUSTOM_CHAR_CONVERSION( CUtlNoEscConversion, s_NoEscConversion, "\"", 0x7F )
-	{ 0x7F, "" },
+	{ 0x7F, (char*)"" },
 END_CUSTOM_CHAR_CONVERSION( CUtlNoEscConversion, s_NoEscConversion, "\"", 0x7F )
 
 CUtlCharConversion *GetNoEscCharConversion()

@@ -5446,7 +5446,7 @@ void GLMTester::StdSetup( void )
 	
 	// check it.
 	bool ready = m_drawFBO->IsReady();
-	InternalError( !ready, "drawing FBO no go");
+	InternalError( !ready, (char*)"drawing FBO no go");
 
 	// bind it
 	ctx->BindFBOToCtx( m_drawFBO, GL_FRAMEBUFFER_EXT );
@@ -5761,7 +5761,7 @@ void GLMTester::Test0( void )
 
 								CGLMTex *newtex = ctx->NewTex( &key );
 								CheckGLError( "tex create test");
-								InternalError( newtex==NULL, "tex create test" );
+								InternalError( newtex==NULL, (char*)"tex create test" );
 								
 								testTextures.AddToTail( newtex );
 								printf("\n[%5d] created tex %s",innerindex,newtex->m_layout->m_layoutSummary );
@@ -5795,7 +5795,7 @@ void GLMTester::Test0( void )
 										
 										ptex->Lock( &lockreq, &lockAddress, &yStride, &zStride );
 										CheckGLError( "tex lock test");
-										InternalError( lockAddress==NULL, "null lock address");
+										InternalError( lockAddress==NULL, (char*)"null lock address");
 
 										// write some texels of this flavor:
 										//	red 75%  green 40%  blue 15%  alpha 80%
@@ -5813,7 +5813,7 @@ void GLMTester::Test0( void )
 
 										GLMGenTexels( &gtp );
 										
-										InternalError( gtp.m_bytesWritten != gtp.m_byteCountLimit, "byte count mismatch from GLMGenTexels" );
+										InternalError( gtp.m_bytesWritten != gtp.m_byteCountLimit, (char*)"byte count mismatch from GLMGenTexels" );
 									}
 								}
 

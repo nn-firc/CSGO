@@ -340,18 +340,18 @@ static HMODULE Sys_LoadLibrary( const char *pLibraryName )
 	
 	if ( CommandLine()->FindParm( "-xlsp" ) )
 	{
-		pSuffix = "_xlsp";
+		pSuffix = (char*)"_xlsp";
 	}
 #ifdef POSIX
 	else if ( CommandLine()->FindParm( "-valveinternal" ) )
 	{
-		pSuffix = "_valveinternal";
+		pSuffix = (char*)"_valveinternal";
 	}
 #endif
 #ifdef IS_WINDOWS_PC
 	else if ( CommandLine()->FindParm( "-ds" ) )			// windows DS bins
 	{
-		pSuffix = "_ds";
+		pSuffix = (char*)"_ds";
 	}
 #endif
 	if ( pSuffix )
