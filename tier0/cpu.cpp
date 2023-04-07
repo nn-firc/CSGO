@@ -261,16 +261,6 @@ static bool IsWin98OrOlder()
 }
 
 
-static bool CheckMMXTechnology(void)
-{
-#if defined( _X360 ) || defined( _PS3 )
-	return false;
-#else
-	return ( cpuid( 1 ).edx & 0x800000 ) != 0;
-#endif
-}
-
-
 static bool CheckSSETechnology(void)
 {
 #if defined( _X360 ) || defined( _PS3 )
@@ -371,15 +361,6 @@ static bool Check3DNowTechnology(void)
 #endif
 }
 
-bool CheckAVXTechnology(void)
-{
-#if defined( _X360 ) || defined( _PS3 )
-	return false;
-#else
-	return ( cpuid( 1 ).ecx & ( 1 << 28 ) ) != 0;
-#endif
-}
-
 static bool CheckCMOVTechnology()
 {
 #if defined( _X360 ) || defined( _PS3 )
@@ -408,7 +389,7 @@ static bool CheckRDTSCTechnology(void)
 }
 
 
-static tchar s_CpuVendorID[ 18 ] = "unknown";
+static tchar s_CpuVendorID[ 13 ] = "unknown";
 
 bool s_bCpuVendorIdInitialized = false;
 
@@ -829,24 +810,116 @@ const CPUInformation& GetCPUInformation()
 
 #endif
 
-	// Determine Processor Features:
-	pi.m_bRDTSC = CheckRDTSCTechnology();
-	pi.m_bCMOV = CheckCMOVTechnology();
-	pi.m_bFCMOV = CheckFCMOVTechnology();
-	pi.m_bMMX = CheckMMXTechnology();
-	pi.m_bSSE = CheckSSETechnology();
-	pi.m_bSSE2 = CheckSSE2Technology();
-	pi.m_bSSE3 = CheckSSE3Technology();
-	pi.m_bSSSE3 = CheckSSSE3Technology();
-	pi.m_bSSE4a = CheckSSE4aTechnology();
-	pi.m_bSSE41 = CheckSSE41Technology();
-	pi.m_bSSE42 = CheckSSE42Technology();
-	pi.m_b3DNow = Check3DNowTechnology();
-	pi.m_bAVX	= CheckAVXTechnology();
-	pi.m_szProcessorID = (tchar*)GetProcessorVendorId();
-	pi.m_szProcessorBrand = (tchar*)GetProcessorBrand();
-	pi.m_bHT = HTSupported();
+	CpuIdResult_t cpuid0 = cpuid( 0 );
+	if ( cpuid0.eax >= 1 )
+	{
+		CpuIdResult_t cpuid1 = cpuid( 1 );
+		uint bFPU = cpuid1.edx & 1; // this should always be on on anything we support
+		// Determine Processor Features:
+		pi.m_bRDTSC = ( cpuid1.edx >> 4 ) & 1;
+		pi.m_bCMOV = ( cpuid1.edx >> 15 ) & 1;
+		pi.m_bFCMOV = ( pi.m_bCMOV && bFPU ) ? 1 : 0;
+		pi.m_bMMX = ( cpuid1.edx >> 23 ) & 1;
+		pi.m_bSSE = ( cpuid1.edx >> 25 ) & 1;
+		pi.m_bSSE2 = ( cpuid1.edx >> 26 ) & 1;
+		pi.m_bSSE3 = cpuid1.ecx & 1;
+		pi.m_bSSSE3 = ( cpuid1.ecx >> 9 ) & 1;;
+		pi.m_bSSE4a = CheckSSE4aTechnology();
+		pi.m_bSSE41 = ( cpuid1.ecx >> 19 ) & 1;
+		pi.m_bSSE42 = ( cpuid1.ecx >> 20 ) & 1;
+		pi.m_b3DNow = Check3DNowTechnology();
+		pi.m_bAVX	= ( cpuid1.ecx >> 28 ) & 1;
+		pi.m_szProcessorID = ( tchar* )GetProcessorVendorId();
+		pi.m_szProcessorBrand = ( tchar* )GetProcessorBrand();
+		pi.m_bHT = ( pi.m_nPhysicalProcessors < pi.m_nLogicalProcessors ); //HTSupported();
 
+		pi.m_nModel			= cpuid1.eax; // full CPU model info
+		pi.m_nFeatures[ 0 ] = cpuid1.edx; // x87+ features
+		pi.m_nFeatures[ 1 ] = cpuid1.ecx; // sse3+ features
+		pi.m_nFeatures[ 2 ] = cpuid1.ebx; // some additional features
+
+		if ( bGenuineIntel )
+		{
+			if ( cpuid0.eax >= 4 )
+			{
+				// we have CPUID.4, use it to find all the cache parameters
+				const uint nCachesToQuery = 4; // leve 0 is not used
+				uint nCacheSizeKiB[ nCachesToQuery ];
+				for ( uint i = 0; i < nCachesToQuery; ++i )
+				{
+					nCacheSizeKiB[ i ] = 0;
+				}
+				for ( unsigned long nSub = 0; nSub < 1024 ; ++nSub )
+				{
+					CpuIdResult_t cpuid4 = cpuidex( 4, nSub );
+					uint nCacheType = cpuid4.eax & 0x1F;
+					if ( nCacheType == 0 )
+					{
+						// no more caches
+						break; 
+					}
+					if ( nCacheType & 1 )
+					{
+						// this cache includes data cache: it's either data or unified. Instuction cache type is 2
+						uint nCacheLevel = ( cpuid4.eax >> 5 ) & 7;
+						if ( nCacheLevel < nCachesToQuery )
+						{
+							uint nCacheWays = 1 + ( ( cpuid4.ebx >> 22 ) & 0x3F );
+							uint nCachePartitions = 1 + ( ( cpuid4.ebx >> 12 ) & 0x3F );
+							uint nCacheLineSize = 1 + ( cpuid4.ebx & 0xFF );
+							uint nCacheSets = 1 + cpuid4.ecx;
+							uint nCacheSizeBytes = nCacheWays * nCachePartitions * nCacheLineSize * nCacheSets;
+							nCacheSizeKiB[ nCacheLevel ] = nCacheSizeBytes >> 10;
+						}
+					}
+				}
+
+				pi.m_nL1CacheSizeKb = nCacheSizeKiB[ 1 ];
+				pi.m_nL2CacheSizeKb = nCacheSizeKiB[ 2 ];
+				pi.m_nL3CacheSizeKb = nCacheSizeKiB[ 3 ];
+			}
+			else if ( cpuid0.eax >= 2 )
+			{
+				// get the cache
+				CpuIdResult_t cpuid2 = cpuid( 2 );
+				for ( int i = ( cpuid2.eax & 0xFF ); i-- > 0; )
+				{
+					InterpretIntelCacheDescriptors( cpuid2.eax & ~0xFF );
+					InterpretIntelCacheDescriptors( cpuid2.ebx );
+					InterpretIntelCacheDescriptors( cpuid2.ecx );
+					InterpretIntelCacheDescriptors( cpuid2.edx );
+					cpuid2 = cpuid( 2 ); // read the next
+				}
+			}
+		}
+	}
+
+	CpuIdResult_t cpuid0ex = cpuid( 0x80000000 );
+	if ( bAuthenticAMD )
+	{
+		if ( cpuid0ex.eax >= 0x80000005 )
+		{
+			CpuIdResult_t cpuid5ex = cpuid( 0x80000005 );
+			pi.m_nL1CacheSizeKb = cpuid5ex.ecx >> 24;
+			pi.m_nL1CacheDesc = cpuid5ex.ecx & 0xFFFFFF;
+		}
+		if ( cpuid0ex.eax >= 0x80000006 )
+		{
+			CpuIdResult_t cpuid6ex = cpuid( 0x80000006 );
+			pi.m_nL2CacheSizeKb = cpuid6ex.ecx >> 16;
+			pi.m_nL2CacheDesc = cpuid6ex.ecx & 0xFFFF;
+			pi.m_nL3CacheSizeKb = ( cpuid6ex.edx >> 18 ) * 512;
+			pi.m_nL3CacheDesc = cpuid6ex.edx & 0xFFFF;
+		}
+	}
+	else if ( bGenuineIntel )
+	{
+		if ( cpuid0ex.eax >= 0x80000006 )
+		{
+			// make sure we got the L2 cache info right
+			pi.m_nL2CacheSizeKb = ( cpuid( 0x80000006 ).ecx >> 16 );
+		}
+	}
 	return pi;
 }
 
