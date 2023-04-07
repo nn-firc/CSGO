@@ -21,7 +21,7 @@ def build(bld):
 		source += ['launcher_main.rc']
 
 	bld(source = source,
-		target = 'csgo',
+		target = 'csgo_launcher',
 		features = 'c cxx cxxprogram',
 		use = 'dl',
 		install_path = bld.env.BINDIR,
