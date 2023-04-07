@@ -838,6 +838,7 @@ const CPUInformation& GetCPUInformation()
 		pi.m_nFeatures[ 1 ] = cpuid1.ecx; // sse3+ features
 		pi.m_nFeatures[ 2 ] = cpuid1.ebx; // some additional features
 
+#if !defined( PLATFORM_64BITS ) // ToDo: add support for 64bit cpus
 		if ( bGenuineIntel )
 		{
 			if ( cpuid0.eax >= 4 )
@@ -892,6 +893,7 @@ const CPUInformation& GetCPUInformation()
 				}
 			}
 		}
+#endif
 	}
 
 	CpuIdResult_t cpuid0ex = cpuid( 0x80000000 );

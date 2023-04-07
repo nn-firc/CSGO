@@ -495,7 +495,7 @@ FORCEINLINE void GLContextSetIndexed( GLClipPlaneEnable_t *src, int index )
 #if GLMDEBUG
 	if (CommandLine()->FindParm("-caps_noclipplanes"))
 	{
-		if (GLMKnob("caps-key",NULL) > 0.0)
+		if (GLMKnob((char*)"caps-key",NULL) > 0.0)
 		{
 			// caps ON means NO clipping
 			src->enable = false;

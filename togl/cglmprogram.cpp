@@ -208,12 +208,12 @@ void	CGLMProgram::SetProgramText( char *text )
 		// create editable text item, if it does not already exist
 		if (!m_editable)
 		{
-			char	*suffix = "";
+			char	*suffix = (char*)"";
 
 			switch(m_type)
 			{
-				case	kGLMVertexProgram:		suffix = ".vsh"; break;
-				case	kGLMFragmentProgram:	suffix = ".fsh"; break;
+				case	kGLMVertexProgram:		suffix = (char*)".vsh"; break;
+				case	kGLMFragmentProgram:	suffix = (char*)".fsh"; break;
 				default:	GLMDebugger();
 			}
 

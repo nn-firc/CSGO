@@ -39,8 +39,8 @@ LINKFLAGS = {
 		'owcc':  ['-Wl,option stack=512k']
 	},
 	'sanitize': {
-		'clang': ['-fsanitize=undefined', '-fsanitize=address', '-pthread'],
-		'gcc':   ['-fsanitize=undefined', '-fsanitize=address', '-pthread'],
+		'clang': ['-fsanitize=undefined', '-fsanitize=address', '-fsanitize-recover=address', '-pthread'],
+		'gcc':   ['-fsanitize=undefined', '-fsanitize=address', '-fsanitize-recover=address', '-pthread'],
 		'msvc': ['/SAFESEH:NO']
 	},
 	'debug': {
@@ -83,8 +83,8 @@ CFLAGS = {
 	},
 	'sanitize': {
 		'msvc':    ['/Od', '/RTC1', '/Zi', '/fsanitize=address'],
-		'gcc':     ['-O0', '-fsanitize=undefined', '-fsanitize=address', '-pthread'],
-		'clang':   ['-O0', '-fsanitize=undefined', '-fsanitize=address', '-pthread'],
+		'gcc':     ['-O0', '-fsanitize=undefined', '-fsanitize=address', '-fsanitize-recover=address', '-pthread'],
+		'clang':   ['-O0', '-fsanitize=undefined', '-fsanitize=address', '-fsanitize-recover=address', '-pthread'],
 		'default': ['-O0']
 	},
 }

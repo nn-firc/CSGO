@@ -3326,11 +3326,11 @@ enum EGLMVertDumpMode
 
 char *g_vertDumpModeNames[] = 
 {
-	"noTransformDump",
-	"transformedByViewProj",
-	"transformedByModelViewProj",
-	"transformedByBoneZeroThenViewProj",
-	"transformedByBonesThenViewProj"
+	(char*)"noTransformDump",
+	(char*)"transformedByViewProj",
+	(char*)"transformedByModelViewProj",
+	(char*)"transformedByBoneZeroThenViewProj",
+	(char*)"transformedByBonesThenViewProj"
 };
 
 static void CopyTilEOL( char *dst, char *src, int dstSize )
@@ -3444,7 +3444,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 				strcpy( transtemp, "no translation info" );
 			}
 			
-			char *linkpath = "no file link";
+			char *linkpath = (char*)"no file link";
 
 			#if GLMDEBUG
 				linkpath = vp->m_editable->m_mirror->m_path;
@@ -3481,7 +3481,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 				strcpy( transtemp, "no translation info" );
 			}
 			
-			char *linkpath = "no file link";
+			char *linkpath = (char*)"no file link";
 
 			#if GLMDEBUG
 				linkpath = fp->m_editable->m_mirror->m_path;
@@ -3510,7 +3510,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 	{
 		GLMPRINTF(("-D-"));
 		GLMPRINTF(("-D- VP parameters" ));
-		char *label = "";
+		char *label = (char*)"";
 		//int labelcounter = 0;
 		
 		static int vmaskranges[] = { /*18,47,*/ -1,-1 };
@@ -3551,12 +3551,12 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 				switch( slotIndex )
 				{
 					case	4:
-						printmat( "MODELVIEWPROJ", slotIndex, 4, values );
+						printmat( (char*)"MODELVIEWPROJ", slotIndex, 4, values );
 						slotIndex += 4;
 					break;
 					
 					case	8:
-						printmat( "VIEWPROJ", slotIndex, 4, values );
+						printmat( (char*)"VIEWPROJ", slotIndex, 4, values );
 						slotIndex += 4;
 						break;
 						
@@ -3619,7 +3619,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 		static int fmaskranges[] = { 40,41, -1,-1 };
 		
 		slotIndex = 0;
-		label = "";
+		label = (char*)"";
 		while(slotIndex < 40)
 		{
 			// if slot index is in a masked range, skip it
@@ -3639,28 +3639,28 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 				float *values = &m_programParamsF[ kGLMFragmentProgram ].m_values[slotIndex][0];
 				switch( slotIndex )
 				{
-					case 0:	label = "g_EnvmapTint";										break;
-					case 1:	label = "g_DiffuseModulation";								break;
-					case 2:	label = "g_EnvmapContrast_ShadowTweaks";					break;
-					case 3:	label = "g_EnvmapSaturation_SelfIllumMask (xyz, and w)";	break;
-					case 4:	label = "g_SelfIllumTint_and_BlendFactor (xyz, and w)";		break;
+					case 0:	label = (char*)"g_EnvmapTint";										break;
+					case 1:	label = (char*)"g_DiffuseModulation";								break;
+					case 2:	label = (char*)"g_EnvmapContrast_ShadowTweaks";					break;
+					case 3:	label = (char*)"g_EnvmapSaturation_SelfIllumMask (xyz, and w)";	break;
+					case 4:	label = (char*)"g_SelfIllumTint_and_BlendFactor (xyz, and w)";		break;
 
-					case 12:	label = "g_ShaderControls";				break;
-					case 13:	label = "g_DepthFeatheringConstants";	break;
+					case 12:	label = (char*)"g_ShaderControls";				break;
+					case 13:	label = (char*)"g_DepthFeatheringConstants";	break;
 
-					case 20:	label = "g_EyePos";						break;
-					case 21:	label = "g_FogParams";					break;
-					case 22:	label = "g_FlashlightAttenuationFactors";	break;
-					case 23:	label = "g_FlashlightPos";				break;
-					case 24:	label = "g_FlashlightWorldToTexture";	break;
+					case 20:	label = (char*)"g_EyePos";						break;
+					case 21:	label = (char*)"g_FogParams";					break;
+					case 22:	label = (char*)"g_FlashlightAttenuationFactors";	break;
+					case 23:	label = (char*)"g_FlashlightPos";				break;
+					case 24:	label = (char*)"g_FlashlightWorldToTexture";	break;
 
-					case 28:	label = "cFlashlightColor";				break;
-					case 29:	label = "g_LinearFogColor";				break;
-					case 30:	label = "cLightScale";					break;
-					case 31:	label = "cFlashlightScreenScale";		break;
+					case 28:	label = (char*)"cFlashlightColor";				break;
+					case 29:	label = (char*)"g_LinearFogColor";				break;
+					case 30:	label = (char*)"cLightScale";					break;
+					case 31:	label = (char*)"cFlashlightScreenScale";		break;
 
 					default:
-						label = "";
+						label = (char*)"";
 					break;
 				}
 
@@ -3820,7 +3820,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 						{
 							for( uint which = 0; which < desc->m_nCompCount; which++ )
 							{
-								static char *fieldname = "xyzw";
+								static char *fieldname = (char*)"xyzw";
 								switch( desc->m_datatype )
 								{
 									case GL_FLOAT:
@@ -3918,7 +3918,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 					{
 						float *viewproj = &m_programParamsF[ kGLMVertexProgram ].m_values[8][0];
 						transform_dp4( vtxPos, viewproj, 4, vtxout );
-						translabel = "post-viewproj";
+						translabel = (char*)"post-viewproj";
 					}
 					break;
 					
@@ -3926,7 +3926,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 					{
 						float *modelviewproj = &m_programParamsF[ kGLMVertexProgram ].m_values[4][0];
 						transform_dp4( vtxPos, modelviewproj, 4, vtxout );
-						translabel = "post-modelviewproj";
+						translabel = (char*)"post-modelviewproj";
 					}
 					break;
 					
@@ -3941,7 +3941,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 						float *viewproj = &m_programParamsF[ kGLMVertexProgram ].m_values[8][0];	// viewproj is slot 8
 						transform_dp4( postbone, viewproj, 4, vtxout );
 
-						translabel = "post-bone0-viewproj";
+						translabel = (char*)"post-bone0-viewproj";
 					}
 					break;
 					
@@ -3973,7 +3973,7 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 						}
 						
 						// fix W ?  do we care ?  check shaders to see what they do...
-						translabel = "post-skin3bone-viewproj";
+						translabel = (char*)"post-skin3bone-viewproj";
 					}
 					break;
 				}
@@ -4025,9 +4025,9 @@ void GLMContext::DebugDump( GLMDebugHookInfo *info, uint options, uint vertDumpM
 // here is the table that binds knob numbers to names.  change at will.
 char *g_knobnames[] = 
 {
-/*0*/	"dummy",
+/*0*/	(char*)"dummy",
 
-/*1*/	"FB-SRGB",
+/*1*/	(char*)"FB-SRGB",
 	#if 0
 		/*1*/	"tex-U0-bias",	// src left
 		/*2*/	"tex-V0-bias",	// src upper
