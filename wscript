@@ -44,6 +44,7 @@ SUBDIRS = [
 	Subproject('vpklib'),
 
 	# bin
+	Subproject('engine'),
 	Subproject('filesystem'),
 
 	# launcher
@@ -223,6 +224,8 @@ def configure(conf):
 	if conf.options.DEDICATED:
 		conf.options.SDL = False
 		conf.define('DEDICATED', 1)
+	else:
+		conf.define('INCLUDE_SCALEFORM',1)
 
 	# TOGL
 	conf.env.append_unique('DEFINES', [
