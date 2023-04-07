@@ -47,18 +47,19 @@ SUBDIRS = [
 	Subproject('filesystem'),
 
 	# launcher
-	Subproject('launcher_main',					lambda x: not x.env.DEDICATED),
-	Subproject('launcher',						lambda x: not x.env.DEDICATED),
-	Subproject('dedicated_main',				lambda x: x.env.DEDICATED),
-	Subproject('dedicated',						lambda x: x.env.DEDICATED),
+	Subproject('launcher_main',								lambda x: not x.env.DEDICATED),
+	Subproject('launcher',									lambda x: not x.env.DEDICATED),
+	Subproject('dedicated_main',							lambda x: x.env.DEDICATED),
+	Subproject('dedicated',									lambda x: x.env.DEDICATED),
 
 	# client
-	Subproject('vphysics',						lambda x: not x.env.DEDICATED),
-	Subproject('togl',							lambda x: not x.env.DEDICATED),
-	Subproject('engine/voice_codecs/minimp3',	lambda x: not x.env.DEDICATED),
+	Subproject('vphysics',									lambda x: not x.env.DEDICATED),
+	Subproject('togl',										lambda x: not x.env.DEDICATED),
+	Subproject('engine/voice_codecs/minimp3',				lambda x: not x.env.DEDICATED),
 
 	# thirdparty
-	Subproject('thirdparty/joltphysics/Jolt',	lambda x: not x.env.DEDICATED)
+	Subproject('thirdparty/joltphysics/Jolt',				lambda x: not x.env.DEDICATED),
+	Subproject('thirdparty/protobuf-2.6.1/google/protobuf')
 ]
 
 def options(opt):
@@ -132,10 +133,9 @@ def configure(conf):
 	]
 
 	cxx_compiler_optional_flags = [
-		'-Wno-narrowing',
-		# newer than C++11 warnings
-		'-Wno-write-strings',
-		'-Wno-ignored-attributes'
+		'-std=c++11',
+		'-fpermissive',
+		'-Wno-narrowing'
 	]
 
 	c_compiler_optional_flags = [

@@ -471,7 +471,7 @@ IDirect3DTexture9::~IDirect3DTexture9()
 
 		if (m_surfZero)
 		{
-			ULONG refc = m_surfZero->Release( 0, "~IDirect3DTexture9 public release (surfZero)" ); (void)refc;
+			ULONG refc = m_surfZero->Release( 0, (char*)"~IDirect3DTexture9 public release (surfZero)" ); (void)refc;
 			Assert( !refc );
 			m_surfZero = NULL;
 		}
@@ -3890,7 +3890,7 @@ HRESULT IDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixe
 			
 			{
 				// find the highwater mark
-				char *highWaterPrefix = "//HIGHWATER-";		// try to arrange this so it can work with pure GLSL if needed
+				char *highWaterPrefix = (char*)"//HIGHWATER-";		// try to arrange this so it can work with pure GLSL if needed
 				char *highWaterStr = strstr( (char *)transbuf.Base(), highWaterPrefix );
 				if (highWaterStr)
 				{
@@ -3910,7 +3910,7 @@ HRESULT IDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixe
 
 			{
 				// find the sampler map
-				char *samplerMaskPrefix = "//SAMPLERMASK-";		// try to arrange this so it can work with pure GLSL if needed
+				char *samplerMaskPrefix = (char*)"//SAMPLERMASK-";		// try to arrange this so it can work with pure GLSL if needed
 			
 				char *samplerMaskStr = strstr( (char *)transbuf.Base(), samplerMaskPrefix );
 				if (samplerMaskStr)
@@ -3944,7 +3944,7 @@ HRESULT IDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixe
 
 			{
 				// find the sampler map
-				char *samplerTypesPrefix = "//SAMPLERTYPES-";		// try to arrange this so it can work with pure GLSL if needed
+				char *samplerTypesPrefix = (char*)"//SAMPLERTYPES-";		// try to arrange this so it can work with pure GLSL if needed
 
 				char *samplerTypesStr = strstr( (char *)transbuf.Base(), samplerTypesPrefix );
 				if (samplerTypesStr)
@@ -3967,7 +3967,7 @@ HRESULT IDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixe
 				// find the fb outputs used by this shader/combo
 				const GLenum buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT };
 
-				char *fragDataMaskPrefix = "//FRAGDATAMASK-";		
+				char *fragDataMaskPrefix = (char*)"//FRAGDATAMASK-";		
 
 				char *fragDataMaskStr = strstr( (char *)transbuf.Base(), fragDataMaskPrefix );
 				if ( fragDataMaskStr )

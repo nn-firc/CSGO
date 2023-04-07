@@ -615,12 +615,12 @@ GLMTexLayout *CGLMTexLayoutTable::NewLayoutRef( GLMTexLayoutKey *pDesiredKey )
 		// "target, format, +/- mips, base size"
 		char scratch[1024];
 
-		char	*targetname = "?";
+		char	*targetname = (char*)"?";
 		switch( key->m_texGLTarget )
 		{
-			case GL_TEXTURE_2D:			targetname = "2D  ";		break;
-			case GL_TEXTURE_3D:			targetname = "3D  ";		break;
-			case GL_TEXTURE_CUBE_MAP:	targetname = "CUBE";		break;
+			case GL_TEXTURE_2D:			targetname = (char*)"2D  ";		break;
+			case GL_TEXTURE_3D:			targetname = (char*)"3D  ";		break;
+			case GL_TEXTURE_CUBE_MAP:	targetname = (char*)"CUBE";		break;
 		}
 		
 		sprintf( scratch, "[%s %s %dx%dx%d mips=%d slices=%d flags=%02lX%s]",
