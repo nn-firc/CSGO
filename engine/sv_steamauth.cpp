@@ -265,7 +265,7 @@ void CSteam3Server::Activate()
 	if ( !SteamGameServer_Init( &g_EngineSteamPS3Params,
 	#else
 	SteamAPI_SetTryCatchCallbacks( false ); // We don't use exceptions, so tell steam not to use try/catch in callback handlers
-	if ( !SteamGameServer_InitSafe( 
+	if ( !SteamGameServer_Init( 
 	#endif
 				m_unIP, 
 				m_usPort+1,	// Steam lives on -steamport + 1, master server updater lives on -steamport.
@@ -345,8 +345,6 @@ steam_no_good:
 	}
 
 #endif
-
-	NET_SteamDatagramServerListen();
 
 	SendUpdatedServerDetails();
 }

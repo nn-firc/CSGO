@@ -316,7 +316,7 @@ void *CVAudioMiniMP3::CreateMilesAudioEngine()
 	// Only used for Bink videos
 	return nullptr;
 }
-void CVAudioMiniMP3::DestroyMilesAudioEngine( [[maybe_unused]] void *pEngine )
+void CVAudioMiniMP3::DestroyMilesAudioEngine( void *pEngine )
 {
 	// This function is never called because CreateMilesAudioEngine returns nullptr
 }

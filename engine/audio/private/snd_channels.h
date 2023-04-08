@@ -8,7 +8,6 @@
 #define SND_CHANNELS_H
 
 #include "mathlib/vector.h"
-#include "phonon/phonon_3d.h"
 
 #if defined( _WIN32 )
 #pragma once

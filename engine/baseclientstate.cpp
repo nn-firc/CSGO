@@ -366,11 +366,6 @@ void CServerMsg_CheckReservation::SendMsg( const ns_address &serverAdr, int sock
 	msg.WriteLongLong( 0 );
 #endif
 
-	#ifndef DEDICATED
-		if ( serverAdr.GetAddressType() == NSAT_PROXIED_GAMESERVER )
-			NET_InitSteamDatagramProxiedGameserverConnection( serverAdr );
-	#endif
-
 	NET_SendPacket( NULL, socket, serverAdr, msg.GetData(), msg.GetNumBytesWritten() );
 }
 
@@ -431,11 +426,6 @@ void CServerMsg_Ping::SendMsg( const ns_address &serverAdr, int socket, uint32 t
 	msg.WriteByte( A2S_PING );
 	msg.WriteLong( GetHostVersion() );
 	msg.WriteLong( token );
-
-	#ifndef DEDICATED
-		if ( serverAdr.GetAddressType() == NSAT_PROXIED_GAMESERVER )
-			NET_InitSteamDatagramProxiedGameserverConnection( serverAdr );
-	#endif
 
 	DevMsg( "Pinging %s\n", ns_address_render( serverAdr ).String() );
 	NET_SendPacket( NULL, socket, serverAdr, msg.GetData(), msg.GetNumBytesWritten() );
@@ -1493,16 +1483,7 @@ void CBaseClientState::CheckForResend ( bool bForceResendNow /* = false */ )
 					break;
 
 				case NSAT_PROXIED_GAMESERVER:
-					#ifdef DEDICATED
-						Assert( false );
-					#else
-
-						// Make sure we have a ticket, and are setup to talk to this guy
-						if ( !NET_InitSteamDatagramProxiedGameserverConnection( remote.m_adrRemote ) )
-							continue;
-
-						pszProtocol = "SteamDatagram";
-					#endif
+					Assert( false );
 					break;
 			}
 			if ( developer.GetInt() != 0 )

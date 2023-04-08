@@ -41,6 +41,7 @@ SUBDIRS = [
 	Subproject('mathlib'),
 	Subproject('steamapi'),
 	Subproject('appframework'),
+	Subproject('gcsdk'),
 	Subproject('vpklib'),
 
 	# bin
@@ -138,8 +139,11 @@ def configure(conf):
 	]
 
 	cxx_compiler_optional_flags = [
+		'-fpermissive',
 		'-Wno-narrowing',
-		'-Wno-ignored-attributes'
+		'-Wno-ignored-attributes',
+		'-Wno-invalid-offsetof',
+		'-Wno-write-strings'
 	]
 
 	c_compiler_optional_flags = [

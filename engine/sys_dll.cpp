@@ -1685,7 +1685,11 @@ CON_COMMAND( star_memory, "Dump memory stats" )
 	// get a current stat of available memory
 	// 32 MB is reserved and fixed by OS, so not reporting to allow memory loggers sync
 #ifdef LINUX
-	struct mallinfo memstats = mallinfo( );
+	#ifdef ANDROID
+		struct mallinfo memstats = mallinfo( );
+	#else
+		struct mallinfo2 memstats = mallinfo2( );
+	#endif
 	Msg( "sbrk size: %.2f MB, Used: %.2f MB, #mallocs = %d\n",
 		 memstats.arena / ( 1024.0 * 1024.0), memstats.uordblks / ( 1024.0 * 1024.0 ), memstats.hblks );
 #elif OSX

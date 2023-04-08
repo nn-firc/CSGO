@@ -9,6 +9,7 @@ def configure(conf):
 	conf.define('BUMPMAP', 1)
 	conf.define('ENGINE_DLL', 1)
 	conf.define('USE_BREAKPAD_HANDLER', 1)
+	conf.define_cond('SWDS',conf.env.DEDICATED)
 
 def build(bld):
 	source = [

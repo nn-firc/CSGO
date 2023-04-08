@@ -2176,7 +2176,11 @@ void Host_PrintMemoryStatus( const char *mapname )
 	const float MB = 1.0f / ( 1024*1024 );
 	Assert( mapname );
 #ifdef PLATFORM_LINUX
-	struct mallinfo memstats = mallinfo( );
+	#ifdef ANDROID
+		struct mallinfo memstats = mallinfo( );
+	#else
+		struct mallinfo2 memstats = mallinfo2( );
+	#endif
 	Msg( "[MEMORYSTATUS] [%s] Operating system reports sbrk size: %.2f MB, Used: %.2f MB, #mallocs = %d\n",
 		mapname, MB*memstats.arena, MB*memstats.uordblks, memstats.hblks );
 #elif defined(PLATFORM_OSX)

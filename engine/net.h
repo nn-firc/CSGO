@@ -174,16 +174,6 @@ void NET_SleepUntilMessages( int nMilliseconds );
 // Returns false if not able to deduce address
 bool NET_GetPublicAdr( netadr_t &adr );
 
-/// Start listening for Steam datagram, if the convar tells us to
-void NET_SteamDatagramServerListen();
-
-/// Called when we receive a ticket to play on a particular gameserver
-#ifndef DEDICATED
-
-/// Make sure we are setup to talk to this gameserver
-bool NET_InitSteamDatagramProxiedGameserverConnection( const ns_address &adr );
-#endif
-
 //============================================================================
 //
 // Encrypted network channel communication support

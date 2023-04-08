@@ -30,6 +30,7 @@
 #include "filesystem/IXboxInstaller.h"
 #include "inputsystem/iinputsystem.h"
 #include <time.h>
+#include <gc_clientsystem.h>
 #include "messagebox_scaleform.h"
 
 
@@ -1452,7 +1453,51 @@ void CUIGameData::OnEvent( KeyValues *pEvent )
 #else
 	else if ( !Q_strcmp( "OnEngineLevelLoadingSession", szEvent ) )
 	{
-		/* Removed for partner depot */
+		// only handle the "CreateSession" reason
+		if( strcmp( pEvent->GetString("reason"), "CreateSession" ) )
+			return;
+
+		uint64 *uiReservationCookiePtr = (uint64*)pEvent->GetPtr("ptr");
+		if( uiReservationCookiePtr )
+		{
+			INetSupport *pINetSupport = ( INetSupport * )g_pMatchFramework->GetMatchExtensions()->GetRegisteredExtensionInterface( INETSUPPORT_VERSION_STRING );
+			if( pINetSupport )
+			{
+				CGameUIConVarRef cl_session("cl_session");
+				pINetSupport->UpdateClientReservation( *uiReservationCookiePtr, 0 );
+				// unfinished....
+			}
+		}
+		else
+		{
+			netadr_t netadr;
+			netadr.SetIP( 0 );
+			netadr.SetPort( 0 );
+			netadr.SetType( NA_IP );
+			netadr.SetFromString( pEvent->GetString("adr" ) );
+			GCSDK::CProtoBufMsg<CMsgGCCStrike15_v2_ClientRequestJoinServerData> joinServerData( k_EMsgGCCStrike15_v2_ClientRequestJoinServerData );
+			INetSupport *pINetSupport = ( INetSupport * )g_pMatchFramework->GetMatchExtensions()->GetRegisteredExtensionInterface( INETSUPPORT_VERSION_STRING );
+			if( pINetSupport )
+			{
+				int buildNum = pINetSupport->GetEngineBuildNumber();
+				if( buildNum )
+				{
+					joinServerData.Body().set_version( buildNum );
+				}
+
+				joinServerData.Body().set_account_id( steamapicontext->SteamUser()->GetSteamID().GetAccountID() );
+				joinServerData.Body().set_serverid( pEvent->GetUint64("gsid") );
+				joinServerData.Body().set_server_ip( netadr.GetIPHostByteOrder() );
+				joinServerData.Body().set_server_port( netadr.GetPort() );
+
+				GCClientSystem()->BSendMessage( joinServerData );
+				//g_xuidFriendWatchSessionJoiningXUID = (one of the above data, unsure)
+				//g_chFriendWatchSessionJoiningXUIDAction = 99;
+
+				//TODO: This is where the game pulls up a Panel "JoiningInvite" with CMatchMakingStatus
+				//CMatchMakingStatus::SetTimeToAutoCancel( Plat_FloatTime + 15.0 );
+			}
+		}
 	}
 #endif
 }
