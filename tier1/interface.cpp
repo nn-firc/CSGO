@@ -401,21 +401,16 @@ CSysModule *Sys_LoadModule( const char *pModuleName )
 	// prior to the call to this routine.
 	HMODULE hDLL = NULL;
 
+#if defined( _PS3 )
 	char alteredFilename[ MAX_PATH ];
-	if ( IsPS3() )
+	// PS3's load module *must* be fed extensions. If the extension is missing, add it. 
+	if (!( strstr(pModuleName, ".sprx") || strstr(pModuleName, ".prx") ))
 	{
-		// PS3's load module *must* be fed extensions. If the extension is missing, add it. 
-		if (!( strstr(pModuleName, ".sprx") || strstr(pModuleName, ".prx") ))
-		{
-			strncpy( alteredFilename, pModuleName, MAX_PATH );
-			strncat( alteredFilename, DLL_EXT_STRING, MAX_PATH );
-			pModuleName = alteredFilename;
-		}
+		strncpy( alteredFilename, pModuleName, MAX_PATH );
+		strncat( alteredFilename, DLL_EXT_STRING, MAX_PATH );
+		pModuleName = alteredFilename;
 	}
-	else
-	{
-		alteredFilename; // just to quash the warning
-	}
+#endif
 
 	if ( !Q_IsAbsolutePath( pModuleName ) )
 	{
