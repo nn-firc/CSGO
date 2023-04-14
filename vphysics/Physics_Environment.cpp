@@ -433,14 +433,6 @@ class CCollisionEventListener : public btSolveCallback {
             // so for now, I'll just leave this as is and play all physics sounds
             m_tmpEvent.deltaCollisionTime = 10.f;
 
-			//lwss hack - ragdoll sounds are a bit too loud
-			if( pObj0->GetCollisionHints() & COLLISION_HINT_RAGDOLL || pObj1->GetCollisionHints() & COLLISION_HINT_RAGDOLL )
-            {
-			    // value determined from testing :))
-                m_tmpEvent.collisionSpeed *= 0.4f;
-            }
-			//lwss end
-
 			/*
 			m_tmpEvent.isCollision = (flags0 & flags1 & CALLBACK_GLOBAL_COLLISION); // False when either one of the objects don't have CALLBACK_GLOBAL_COLLISION
 			m_tmpEvent.isShadowCollision = (flags0 ^ flags1) & CALLBACK_SHADOW_COLLISION; // True when only one of the objects is a shadow
