@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -941,10 +941,7 @@ btScalar btSequentialImpulseConstraintSolverMt::solveSingleIteration(int iterati
 
 	if (infoGlobal.m_solverMode & SOLVER_RANDMIZE_ORDER)
 	{
-		if (1)  // uncomment this for a bit less random ((iteration & 7) == 0)
-		{
-			randomizeConstraintOrdering(iteration, infoGlobal.m_numIterations);
-		}
+		randomizeConstraintOrdering(iteration, infoGlobal.m_numIterations);
 	}
 
 	{
@@ -1019,7 +1016,7 @@ btScalar btSequentialImpulseConstraintSolverMt::resolveMultipleContactConstraint
 		const btSolverConstraint& solveManifold = m_tmpSolverContactConstraintPool[iCons];
 		btSolverBody& bodyA = m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA];
 		btSolverBody& bodyB = m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB];
-		btScalar residual = resolveSingleConstraintRowLowerLimit(bodyA, bodyB, solveManifold);
+		btScalar residual = resolveSingleConstraintRowLowerLimit(bodyA, bodyB, solveManifold, static_cast<btManifoldPoint*>(solveManifold.m_originalContactPoint));
 		leastSquaresResidual += residual * residual;
 	}
 	return leastSquaresResidual;
@@ -1110,7 +1107,8 @@ btScalar btSequentialImpulseConstraintSolverMt::resolveMultipleContactConstraint
 		// apply penetration constraint
 		{
 			const btSolverConstraint& solveManifold = m_tmpSolverContactConstraintPool[iContact];
-			btScalar residual = resolveSingleConstraintRowLowerLimit(m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA], m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB], solveManifold);
+			btScalar residual = resolveSingleConstraintRowLowerLimit(m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA], m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB], solveManifold,
+				static_cast<btManifoldPoint*>(solveManifold.m_originalContactPoint));
 			leastSquaresResidual += residual * residual;
 			totalImpulse = solveManifold.m_appliedImpulse;
 		}

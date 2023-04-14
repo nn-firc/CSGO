@@ -113,8 +113,8 @@ struct btDbvtTreeCollider : btDbvt::ICollide
 			if (pa->m_uniqueId > pb->m_uniqueId)
 				btSwap(pa, pb);
 #endif
-			pbp->m_paircache->addOverlappingPair(pa, pb);
-			++pbp->m_newpairs;
+			if (pbp->m_paircache->addOverlappingPair(pa, pb))
+				++pbp->m_newpairs;
 		}
 	}
 	void Process(const btDbvtNode* n)
@@ -245,11 +245,9 @@ void btDbvtBroadphase::rayTest(const btVector3& rayFrom, const btVector3& rayTo,
 	// for this function to be threadsafe, each thread must have a separate copy
 	// of this stack.  This could be thread-local static to avoid dynamic allocations,
 	// instead of just a local.
-	int threadIndex = btGetCurrentThreadIndex();
+	const int threadIndex = btGetCurrentThreadIndex();
 	btAlignedObjectArray<const btDbvtNode*> localStack;
-	//todo(erwincoumans, "why do we get tsan issue here?")
-	if (0)//threadIndex < m_rayTestStacks.size())
-	//if (threadIndex < m_rayTestStacks.size())
+	if (threadIndex < m_rayTestStacks.size())
 	{
 		// use per-thread preallocated stack if possible to avoid dynamic allocations
 		stack = &m_rayTestStacks[threadIndex];
@@ -512,14 +510,14 @@ void btDbvtBroadphase::performDeferredRemoval(btDispatcher* dispatcher)
 void btDbvtBroadphase::collide(btDispatcher* dispatcher)
 {
 	/*printf("---------------------------------------------------------\n");
-	printf("m_sets[0].m_leaves=%d\n",m_sets[0].m_leaves);
-	printf("m_sets[1].m_leaves=%d\n",m_sets[1].m_leaves);
-	printf("numPairs = %d\n",getOverlappingPairCache()->getNumOverlappingPairs());
+	printf("m_sets[0].m_leaves=%d\n", m_sets[0].m_leaves);
+	printf("m_sets[1].m_leaves=%d\n", m_sets[1].m_leaves);
+	printf("numPairs = %d\n", getOverlappingPairCache()->getNumOverlappingPairs());
 	{
 		int i;
 		for (i=0;i<getOverlappingPairCache()->getNumOverlappingPairs();i++)
 		{
-			printf("pair[%d]=(%d,%d),",i,getOverlappingPairCache()->getOverlappingPairArray()[i].m_pProxy0->getUid(),
+			printf("pair[%d]=(%d, %d), ",i, getOverlappingPairCache()->getOverlappingPairArray()[i].m_pProxy0->getUid(),
 				getOverlappingPairCache()->getOverlappingPairArray()[i].m_pProxy1->getUid());
 		}
 		printf("\n");

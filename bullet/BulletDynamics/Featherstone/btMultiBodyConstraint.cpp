@@ -2,12 +2,11 @@
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "btMultiBodyPoint2Point.h"  //for testing (BTMBP2PCONSTRAINT_BLOCK_ANGULAR_MOTION_TEST macro)
 
-btMultiBodyConstraint::btMultiBodyConstraint(btMultiBody* bodyA, btMultiBody* bodyB, int linkA, int linkB, int numRows, bool isUnilateral, int type)
+btMultiBodyConstraint::btMultiBodyConstraint(btMultiBody* bodyA, btMultiBody* bodyB, int linkA, int linkB, int numRows, bool isUnilateral)
 	: m_bodyA(bodyA),
 	  m_bodyB(bodyB),
 	  m_linkA(linkA),
 	  m_linkB(linkB),
-	  m_type(type),
 	  m_numRows(numRows),
 	  m_jacSizeA(0),
 	  m_jacSizeBoth(0),
@@ -61,8 +60,7 @@ btScalar btMultiBodyConstraint::fillMultiBodyConstraint(btMultiBodySolverConstra
 														btScalar lowerLimit, btScalar upperLimit,
 														bool angConstraint,
 														btScalar relaxation,
-														bool isFriction, btScalar desiredVelocity, btScalar cfmSlip,
-														btScalar damping)
+														bool isFriction, btScalar desiredVelocity, btScalar cfmSlip)
 {
 	solverConstraint.m_multiBodyA = m_bodyA;
 	solverConstraint.m_multiBodyB = m_bodyB;
@@ -349,7 +347,7 @@ btScalar btMultiBodyConstraint::fillMultiBodyConstraint(btMultiBodySolverConstra
 
 	{
 		btScalar positionalError = 0.f;
-		btScalar velocityError = (desiredVelocity - rel_vel) * damping;
+		btScalar velocityError = desiredVelocity - rel_vel;  // * damping;
 
 		btScalar erp = infoGlobal.m_erp2;
 

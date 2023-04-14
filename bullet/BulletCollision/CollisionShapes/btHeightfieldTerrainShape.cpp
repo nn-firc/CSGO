@@ -18,72 +18,26 @@ subject to the following restrictions:
 #include "LinearMath/btTransformUtil.h"
 
 btHeightfieldTerrainShape::btHeightfieldTerrainShape(
-	int heightStickWidth, int heightStickLength,
-	const float* heightfieldData, btScalar minHeight, btScalar maxHeight,
-	int upAxis, bool flipQuadEdges)
-	: m_userValue3(0), m_triangleInfoMap(0)
-{
-	initialize(heightStickWidth, heightStickLength, heightfieldData,
-			   /*heightScale=*/1, minHeight, maxHeight, upAxis, PHY_FLOAT,
-			   flipQuadEdges);
-}
-
-btHeightfieldTerrainShape::btHeightfieldTerrainShape(
-	int heightStickWidth, int heightStickLength, const double* heightfieldData,
-	btScalar minHeight, btScalar maxHeight, int upAxis, bool flipQuadEdges)
-	: m_userValue3(0), m_triangleInfoMap(0)
-{
-	initialize(heightStickWidth, heightStickLength, heightfieldData,
-			   /*heightScale=*/1, minHeight, maxHeight, upAxis, PHY_DOUBLE,
-			   flipQuadEdges);
-}
-
-btHeightfieldTerrainShape::btHeightfieldTerrainShape(
-	int heightStickWidth, int heightStickLength, const short* heightfieldData, btScalar heightScale,
-	btScalar minHeight, btScalar maxHeight, int upAxis, bool flipQuadEdges)
-	: m_userValue3(0), m_triangleInfoMap(0)
-{
-	initialize(heightStickWidth, heightStickLength, heightfieldData,
-			   heightScale, minHeight, maxHeight, upAxis, PHY_SHORT,
-			   flipQuadEdges);
-}
-
-btHeightfieldTerrainShape::btHeightfieldTerrainShape(
-	int heightStickWidth, int heightStickLength, const unsigned char* heightfieldData, btScalar heightScale,
-	btScalar minHeight, btScalar maxHeight, int upAxis, bool flipQuadEdges)
-	: m_userValue3(0), m_triangleInfoMap(0)
-{
-	initialize(heightStickWidth, heightStickLength, heightfieldData,
-			   heightScale, minHeight, maxHeight, upAxis, PHY_UCHAR,
-			   flipQuadEdges);
-}
-
-btHeightfieldTerrainShape::btHeightfieldTerrainShape(
 	int heightStickWidth, int heightStickLength, const void* heightfieldData,
 	btScalar heightScale, btScalar minHeight, btScalar maxHeight, int upAxis,
 	PHY_ScalarType hdt, bool flipQuadEdges)
-	:m_userValue3(0),
-	m_triangleInfoMap(0)
+	: m_userIndex2(-1),
+	  m_userValue3(0),
+	  m_triangleInfoMap(0)
 {
-	// legacy constructor: Assumes PHY_FLOAT means btScalar.
-#ifdef BT_USE_DOUBLE_PRECISION
-	if (hdt == PHY_FLOAT) hdt = PHY_DOUBLE;
-#endif
 	initialize(heightStickWidth, heightStickLength, heightfieldData,
 			   heightScale, minHeight, maxHeight, upAxis, hdt,
 			   flipQuadEdges);
 }
 
 btHeightfieldTerrainShape::btHeightfieldTerrainShape(int heightStickWidth, int heightStickLength, const void* heightfieldData, btScalar maxHeight, int upAxis, bool useFloatData, bool flipQuadEdges)
-	:	m_userValue3(0),
-	m_triangleInfoMap(0)
+	: m_userIndex2(-1),
+	  m_userValue3(0),
+	  m_triangleInfoMap(0)
 {
-	// legacy constructor: support only btScalar or unsigned char data,
-	// and min height is zero.
+	// legacy constructor: support only float or unsigned char,
+	// 	and min height is zero
 	PHY_ScalarType hdt = (useFloatData) ? PHY_FLOAT : PHY_UCHAR;
-#ifdef BT_USE_DOUBLE_PRECISION
-	if (hdt == PHY_FLOAT) hdt = PHY_DOUBLE;
-#endif
 	btScalar minHeight = 0.0f;
 
 	// previously, height = uchar * maxHeight / 65535.
@@ -107,7 +61,7 @@ void btHeightfieldTerrainShape::initialize(
 	// btAssert(heightScale) -- do we care?  Trust caller here
 	btAssert(minHeight <= maxHeight);                                    // && "bad min/max height");
 	btAssert(upAxis >= 0 && upAxis < 3);                                 // && "bad upAxis--should be in range [0,2]");
-	btAssert(hdt != PHY_UCHAR || hdt != PHY_FLOAT || hdt != PHY_DOUBLE || hdt != PHY_SHORT);  // && "Bad height data type enum");
+	btAssert(hdt != PHY_UCHAR || hdt != PHY_FLOAT || hdt != PHY_SHORT);  // && "Bad height data type enum");
 
 	// initialize member variables
 	m_shapeType = TERRAIN_SHAPE_PROXYTYPE;
@@ -126,7 +80,7 @@ void btHeightfieldTerrainShape::initialize(
 	m_flipTriangleWinding = false;
 	m_upAxis = upAxis;
 	m_localScaling.setValue(btScalar(1.), btScalar(1.), btScalar(1.));
-	
+
 	m_vboundsChunkSize = 0;
 	m_vboundsGridWidth = 0;
 	m_vboundsGridLength = 0;
@@ -197,12 +151,6 @@ btHeightfieldTerrainShape::getRawHeightFieldValue(int x, int y) const
 		case PHY_FLOAT:
 		{
 			val = m_heightfieldDataFloat[(y * m_heightStickWidth) + x];
-			break;
-		}
-
-		case PHY_DOUBLE:
-		{
-			val = m_heightfieldDataDouble[(y * m_heightStickWidth) + x];
 			break;
 		}
 
@@ -284,30 +232,6 @@ getQuantized(
 		return (int)(x - 0.5);
 	}
 	return (int)(x + 0.5);
-}
-
-// Equivalent to std::minmax({a, b, c}).
-// Performs at most 3 comparisons.
-static btHeightfieldTerrainShape::Range minmaxRange(btScalar a, btScalar b, btScalar c)
-{
-	if (a > b)
-	{
-		if (b > c)
-			return btHeightfieldTerrainShape::Range(c, a);
-		else if (a > c)
-			return btHeightfieldTerrainShape::Range(b, a);
-		else
-			return btHeightfieldTerrainShape::Range(b, c);
-	}
-	else
-	{
-		if (a > c)
-			return btHeightfieldTerrainShape::Range(c, b);
-		else if (b > c)
-			return btHeightfieldTerrainShape::Range(a, b);
-		else
-			return btHeightfieldTerrainShape::Range(a, c);
-	}
 }
 
 /// given input vector, return quantized version
@@ -412,14 +336,13 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 	}
 
 	// TODO If m_vboundsGrid is available, use it to determine if we really need to process this area
-	
-	const Range aabbUpRange(aabbMin[m_upAxis], aabbMax[m_upAxis]);
+
 	for (int j = startJ; j < endJ; j++)
 	{
 		for (int x = startX; x < endX; x++)
 		{
 			btVector3 vertices[3];
-			int indices[3] = { 0, 1, 2 };
+			int indices[3] = {0, 1, 2};
 			if (m_flipTriangleWinding)
 			{
 				indices[0] = 2;
@@ -428,51 +351,29 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 
 			if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j + x) & 1)) || (m_useZigzagSubdivision && !(j & 1)))
 			{
+				//first triangle
 				getVertex(x, j, vertices[indices[0]]);
 				getVertex(x, j + 1, vertices[indices[1]]);
 				getVertex(x + 1, j + 1, vertices[indices[2]]);
-
-				// Skip triangle processing if the triangle is out-of-AABB.
-				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x, j);
-			
-				// already set: getVertex(x, j, vertices[indices[0]])
-
-				// equivalent to: getVertex(x + 1, j + 1, vertices[indices[1]]);
-				vertices[indices[1]] = vertices[indices[2]];
-
+				callback->processTriangle(vertices, 2 * x, j);
+				//second triangle
+				//  getVertex(x,j,vertices[0]);//already got this vertex before, thanks to Danny Chapman
+				getVertex(x + 1, j + 1, vertices[indices[1]]);
 				getVertex(x + 1, j, vertices[indices[2]]);
-				upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-				upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x + 1, j);
+				callback->processTriangle(vertices, 2 * x + 1, j);
 			}
 			else
 			{
+				//first triangle
 				getVertex(x, j, vertices[indices[0]]);
 				getVertex(x, j + 1, vertices[indices[1]]);
 				getVertex(x + 1, j, vertices[indices[2]]);
-
-				// Skip triangle processing if the triangle is out-of-AABB.
-				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x, j);
-
-				// already set: getVertex(x, j + 1, vertices[indices[1]]);
-
-				// equivalent to: getVertex(x + 1, j, vertices[indices[0]]);
-				vertices[indices[0]] = vertices[indices[2]];
-
+				callback->processTriangle(vertices, 2 * x, j);
+				//second triangle
+				getVertex(x + 1, j, vertices[indices[0]]);
+				//getVertex(x,j+1,vertices[1]);
 				getVertex(x + 1, j + 1, vertices[indices[2]]);
-				upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-				upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x + 1, j);
+				callback->processTriangle(vertices, 2 * x + 1, j);
 			}
 		}
 	}
@@ -496,18 +397,18 @@ const btVector3& btHeightfieldTerrainShape::getLocalScaling() const
 
 namespace
 {
-	struct GridRaycastState
-	{
-		int x;  // Next quad coords
-		int z;
-		int prev_x;  // Previous quad coords
-		int prev_z;
-		btScalar param;      // Exit param for previous quad
-		btScalar prevParam;  // Enter param for previous quad
-		btScalar maxDistanceFlat;
-		btScalar maxDistance3d;
-	};
-}
+struct GridRaycastState
+{
+	int x;  // Next quad coords
+	int z;
+	int prev_x;  // Previous quad coords
+	int prev_z;
+	btScalar param;      // Exit param for previous quad
+	btScalar prevParam;  // Enter param for previous quad
+	btScalar maxDistanceFlat;
+	btScalar maxDistance3d;
+};
+}  // namespace
 
 // TODO Does it really need to take 3D vectors?
 /// Iterates through a virtual 2D grid of unit-sized square cells,
@@ -523,7 +424,6 @@ void gridRaycast(Action_T& quadAction, const btVector3& beginPos, const btVector
 		// Consider the ray is too small to hit anything
 		return;
 	}
-	
 
 	btScalar rayDirectionFlatX = endPos[indices[0]] - beginPos[indices[0]];
 	btScalar rayDirectionFlatZ = endPos[indices[2]] - beginPos[indices[2]];
@@ -722,7 +622,7 @@ struct ProcessVBoundsAction
 
 	ProcessVBoundsAction(const btAlignedObjectArray<btHeightfieldTerrainShape::Range>& bnd, int* indices)
 		: vbounds(bnd),
-		m_indices(indices)
+		  m_indices(indices)
 	{
 	}
 	void operator()(const GridRaycastState& rs) const
@@ -793,7 +693,7 @@ void btHeightfieldTerrainShape::performRaycast(btTriangleCallback* callback, con
 	processTriangles.length = m_heightStickLength - 1;
 
 	// TODO Transform vectors to account for m_upAxis
-	int indices[3] = { 0, 1, 2 };
+	int indices[3] = {0, 1, 2};
 	if (m_upAxis == 2)
 	{
 		indices[1] = 2;
@@ -813,9 +713,7 @@ void btHeightfieldTerrainShape::performRaycast(btTriangleCallback* callback, con
 		return;
 	}
 
-	
-
-	if (m_vboundsGrid.size()==0)
+	if (m_vboundsGrid.size() == 0)
 	{
 		// Process all quads intersecting the flat projection of the ray
 		gridRaycast(processTriangles, beginPos, endPos, &indices[0]);
@@ -828,7 +726,6 @@ void btHeightfieldTerrainShape::performRaycast(btTriangleCallback* callback, con
 		{
 			// Don't use chunks, the ray is too short in the plane
 			gridRaycast(processTriangles, beginPos, endPos, &indices[0]);
-			return;
 		}
 
 		ProcessVBoundsAction processVBounds(m_vboundsGrid, &indices[0]);
@@ -882,7 +779,7 @@ void btHeightfieldTerrainShape::buildAccelerator(int chunkSize)
 
 	// This data structure is only reallocated if the required size changed
 	m_vboundsGrid.resize(nChunksX * nChunksZ);
-	
+
 	// Compute min and max height for all chunks
 	for (int cz = 0; cz < nChunksZ; ++cz)
 	{

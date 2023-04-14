@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -43,15 +43,13 @@ struct btContactSolverInfoData
 	btScalar m_restitution;
 	int m_numIterations;
 	btScalar m_maxErrorReduction;
-	btScalar m_sor;          //successive over-relaxation term
-	btScalar m_erp;          //error reduction for non-contact constraints
-	btScalar m_erp2;         //error reduction for contact constraints
-	btScalar m_deformable_erp;          //error reduction for deformable constraints
-	btScalar m_deformable_cfm;          //constraint force mixing for deformable constraints
-	btScalar m_deformable_maxErrorReduction; // maxErrorReduction for deformable contact
-	btScalar m_globalCfm;    //constraint force mixing for contacts and non-contacts
-	btScalar m_frictionERP;  //error reduction for friction constraints
-	btScalar m_frictionCFM;  //constraint force mixing for friction constraints
+	btScalar m_sor;             //successive over-relaxation term
+	btScalar m_erp;             //error reduction for non-contact constraints
+	btScalar m_erp2;            //error reduction for contact constraints
+	btScalar m_deformable_erp;  //error reduction for deformable constraints
+	btScalar m_globalCfm;       //constraint force mixing for contacts and non-contacts
+	btScalar m_frictionERP;     //error reduction for friction constraints
+	btScalar m_frictionCFM;     //constraint force mixing for friction constraints
 
 	int m_splitImpulse;
 	btScalar m_splitImpulsePenetrationThreshold;
@@ -69,7 +67,6 @@ struct btContactSolverInfoData
 	bool m_jointFeedbackInWorldSpace;
 	bool m_jointFeedbackInJointFrame;
 	int m_reportSolverAnalytics;
-	int m_numNonContactInnerIterations;
 };
 
 struct btContactSolverInfo : public btContactSolverInfoData
@@ -85,9 +82,7 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_numIterations = 10;
 		m_erp = btScalar(0.2);
 		m_erp2 = btScalar(0.2);
-		m_deformable_erp = btScalar(0.06);
-		m_deformable_cfm = btScalar(0.01);
-		m_deformable_maxErrorReduction = btScalar(0.1);
+		m_deformable_erp = btScalar(0.);
 		m_globalCfm = btScalar(0.);
 		m_frictionERP = btScalar(0.2);  //positional friction 'anchors' are disabled by default
 		m_frictionCFM = btScalar(0.);
@@ -109,7 +104,6 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_jointFeedbackInWorldSpace = false;
 		m_jointFeedbackInJointFrame = false;
 		m_reportSolverAnalytics = 0;
-		m_numNonContactInnerIterations = 1;   // the number of inner iterations for solving motor constraint in a single iteration of the constraint solve
 	}
 };
 
@@ -171,7 +165,6 @@ struct btContactSolverInfoFloatData
 
 	int m_minimumSolverBatchSize;
 	int m_splitImpulse;
-	
 };
 
 #endif  //BT_CONTACT_SOLVER_INFO

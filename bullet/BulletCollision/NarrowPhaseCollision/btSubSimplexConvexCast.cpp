@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -27,7 +27,6 @@ btSubsimplexConvexCast::btSubsimplexConvexCast(const btConvexShape* convexA, con
 	  m_convexB(convexB)
 {
 }
-
 
 bool btSubsimplexConvexCast::calcTimeOfImpact(
 	const btTransform& fromA,
@@ -62,8 +61,6 @@ bool btSubsimplexConvexCast::calcTimeOfImpact(
 	btVector3 c;
 
 	btScalar dist2 = v.length2();
-
-
 
 	btVector3 w, p;
 	btScalar VdotR;

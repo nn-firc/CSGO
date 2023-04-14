@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -53,6 +53,8 @@ btCollisionDispatcher::btCollisionDispatcher(btCollisionConfiguration* collision
 
 void btCollisionDispatcher::registerCollisionCreateFunc(int proxyType0, int proxyType1, btCollisionAlgorithmCreateFunc* createFunc)
 {
+	// TODO: Is this assert really required?
+	btAssert(proxyType0 < MAX_BROADPHASE_COLLISION_TYPES && proxyType1 < MAX_BROADPHASE_COLLISION_TYPES);
 	m_doubleDispatchContactPoints[proxyType0][proxyType1] = createFunc;
 }
 

@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -30,7 +30,7 @@ btSphereBoxCollisionAlgorithm::btSphereBoxCollisionAlgorithm(btPersistentManifol
 	const btCollisionObjectWrapper* sphereObjWrap = m_isSwapped ? col1Wrap : col0Wrap;
 	const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? col0Wrap : col1Wrap;
 
-	if (!m_manifoldPtr && m_dispatcher->needsCollision(sphereObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject()))
+	if (!m_manifoldPtr)
 	{
 		m_manifoldPtr = m_dispatcher->getNewManifold(sphereObjWrap->getCollisionObject(), boxObjWrap->getCollisionObject());
 		m_ownManifold = true;

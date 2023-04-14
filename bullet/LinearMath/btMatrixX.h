@@ -27,6 +27,8 @@ subject to the following restrictions:
 #include <iomanip>  // std::setw
 #endif              //BT_DEBUG_OSTREAM
 
+#include <stdio.h>
+
 class btIntSortPredicate
 {
 public:
@@ -346,9 +348,7 @@ struct btMatrixX
 					T dotProd = 0;
 					{
 						{
-							int c = cols();
-
-							for (int k = 0; k < c; k++)
+							for (int k = 0; k < cols(); k++)
 							{
 								T w = (*this)(i, k);
 								if (other(k, j) != 0.f)

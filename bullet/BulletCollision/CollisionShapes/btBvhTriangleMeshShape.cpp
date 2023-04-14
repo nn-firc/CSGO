@@ -124,17 +124,12 @@ void btBvhTriangleMeshShape::performRaycast(btTriangleCallback* callback, const 
 				nodeSubPart);
 
 			unsigned int* gfxbase = (unsigned int*)(indexbase + nodeTriangleIndex * indexstride);
+			btAssert(indicestype == PHY_INTEGER || indicestype == PHY_SHORT);
 
 			const btVector3& meshScaling = m_meshInterface->getScaling();
 			for (int j = 2; j >= 0; j--)
 			{
-				int graphicsindex;
-                                switch (indicestype) {
-                                        case PHY_INTEGER: graphicsindex = gfxbase[j]; break;
-                                        case PHY_SHORT: graphicsindex = ((unsigned short*)gfxbase)[j]; break;
-                                        case PHY_UCHAR: graphicsindex = ((unsigned char*)gfxbase)[j]; break;
-                                        default: btAssert(0);
-                                }
+				int graphicsindex = indicestype == PHY_SHORT ? ((unsigned short*)gfxbase)[j] : gfxbase[j];
 
 				if (type == PHY_FLOAT)
 				{
@@ -198,17 +193,12 @@ void btBvhTriangleMeshShape::performConvexcast(btTriangleCallback* callback, con
 				nodeSubPart);
 
 			unsigned int* gfxbase = (unsigned int*)(indexbase + nodeTriangleIndex * indexstride);
+			btAssert(indicestype == PHY_INTEGER || indicestype == PHY_SHORT);
 
 			const btVector3& meshScaling = m_meshInterface->getScaling();
 			for (int j = 2; j >= 0; j--)
 			{
-				int graphicsindex;
-                                switch (indicestype) {
-                                        case PHY_INTEGER: graphicsindex = gfxbase[j]; break;
-                                        case PHY_SHORT: graphicsindex = ((unsigned short*)gfxbase)[j]; break;
-                                        case PHY_UCHAR: graphicsindex = ((unsigned char*)gfxbase)[j]; break;
-                                        default: btAssert(0);
-                                }
+				int graphicsindex = indicestype == PHY_SHORT ? ((unsigned short*)gfxbase)[j] : gfxbase[j];
 
 				if (type == PHY_FLOAT)
 				{

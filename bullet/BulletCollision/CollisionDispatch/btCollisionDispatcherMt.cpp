@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -28,10 +28,6 @@ subject to the following restrictions:
 btCollisionDispatcherMt::btCollisionDispatcherMt(btCollisionConfiguration* config, int grainSize)
 	: btCollisionDispatcher(config)
 {
-	m_batchManifoldsPtr.resize(btGetTaskScheduler()->getNumThreads());
-	m_batchReleasePtr.resize(btGetTaskScheduler()->getNumThreads());
-
-	m_batchUpdating = false;
 	m_grainSize = grainSize;  // iterations per task
 }
 
@@ -60,17 +56,11 @@ btPersistentManifold* btCollisionDispatcherMt::getNewManifold(const btCollisionO
 		}
 	}
 	btPersistentManifold* manifold = new (mem) btPersistentManifold(body0, body1, 0, contactBreakingThreshold, contactProcessingThreshold);
-	if (!m_batchUpdating)
+	if (m_manifoldMutex.tryLock())
 	{
-		// batch updater will update manifold pointers array after finishing, so
-		// only need to update array when not batch-updating
-		//btAssert( !btThreadsAreRunning() );
 		manifold->m_index1a = m_manifoldsPtr.size();
 		m_manifoldsPtr.push_back(manifold);
-	}
-	else
-	{
-		m_batchManifoldsPtr[btGetCurrentThreadIndex()].push_back(manifold);
+		m_manifoldMutex.unlock();
 	}
 
 	return manifold;
@@ -78,21 +68,15 @@ btPersistentManifold* btCollisionDispatcherMt::getNewManifold(const btCollisionO
 
 void btCollisionDispatcherMt::releaseManifold(btPersistentManifold* manifold)
 {
-	//btAssert( !btThreadsAreRunning() );
-	
-	if (!m_batchUpdating)
+	clearManifold(manifold);
+	if (m_manifoldsPtr.size() > 0 && m_manifoldMutex.tryLock())
 	{
-		clearManifold(manifold);
-		// batch updater will update manifold pointers array after finishing, so
-		// only need to update array when not batch-updating
-		int findIndex = manifold->m_index1a;
+		const int findIndex = manifold->m_index1a;
 		btAssert(findIndex < m_manifoldsPtr.size());
 		m_manifoldsPtr.swap(findIndex, m_manifoldsPtr.size() - 1);
 		m_manifoldsPtr[findIndex]->m_index1a = findIndex;
 		m_manifoldsPtr.pop_back();
-	} else {
-		m_batchReleasePtr[btGetCurrentThreadIndex()].push_back(manifold);
-		return;
+		m_manifoldMutex.unlock();
 	}
 
 	manifold->~btPersistentManifold();
@@ -120,7 +104,8 @@ struct CollisionDispatcherUpdater : public btIParallelForBody
 		mDispatcher = NULL;
 		mInfo = NULL;
 	}
-	void forLoop(int iBegin, int iEnd) const
+
+	void forLoop(int iBegin, int iEnd) const override
 	{
 		for (int i = iBegin; i < iEnd; ++i)
 		{
@@ -137,43 +122,12 @@ void btCollisionDispatcherMt::dispatchAllCollisionPairs(btOverlappingPairCache* 
 	{
 		return;
 	}
+
 	CollisionDispatcherUpdater updater;
 	updater.mCallback = getNearCallback();
 	updater.mPairArray = pairCache->getOverlappingPairArrayPtr();
 	updater.mDispatcher = this;
 	updater.mInfo = &info;
 
-	m_batchUpdating = true;
 	btParallelFor(0, pairCount, m_grainSize, updater);
-	m_batchUpdating = false;
-
-	// merge new manifolds, if any
-	for (int i = 0; i < m_batchManifoldsPtr.size(); ++i)
-	{
-		btAlignedObjectArray<btPersistentManifold*>& batchManifoldsPtr = m_batchManifoldsPtr[i];
-
-		for (int j = 0; j < batchManifoldsPtr.size(); ++j)
-		{
-			m_manifoldsPtr.push_back(batchManifoldsPtr[j]);
-		}
-
-		batchManifoldsPtr.resizeNoInitialize(0);
-	}
-
-	// remove batched remove manifolds.
-	for (int i = 0; i < m_batchReleasePtr.size(); ++i)
-	{
-		btAlignedObjectArray<btPersistentManifold*>& batchManifoldsPtr = m_batchReleasePtr[i];
-		for (int j = 0; j < batchManifoldsPtr.size(); ++j)
-		{
-			releaseManifold(batchManifoldsPtr[j]);
-		}
-		batchManifoldsPtr.resizeNoInitialize(0);
-	}
-
-	// update the indices (used when releasing manifolds)
-	for (int i = 0; i < m_manifoldsPtr.size(); ++i)
-	{
-		m_manifoldsPtr[i]->m_index1a = i;
-	}
 }

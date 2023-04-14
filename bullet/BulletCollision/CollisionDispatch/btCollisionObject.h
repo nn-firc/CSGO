@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -24,7 +24,6 @@ subject to the following restrictions:
 #define WANTS_DEACTIVATION 3
 #define DISABLE_DEACTIVATION 4
 #define DISABLE_SIMULATION 5
-#define FIXED_BASE_MULTI_BODY 6
 
 struct btBroadphaseProxy;
 class btCollisionShape;
@@ -121,6 +120,9 @@ protected:
 	///internal update revision number. It will be increased when the object changes. This allows some subsystems to perform lazy evaluation.
 	int m_updateRevision;
 
+	// Name to print for debug messages pertaining to this object
+	const char* m_pDebugName;
+
 	btVector3 m_customDebugColorRGB;
 
 public:
@@ -128,7 +130,6 @@ public:
 
 	enum CollisionFlags
 	{
-		CF_DYNAMIC_OBJECT = 0,
 		CF_STATIC_OBJECT = 1,
 		CF_KINEMATIC_OBJECT = 2,
 		CF_NO_CONTACT_RESPONSE = 4,
@@ -253,16 +254,6 @@ public:
 		m_checkCollideWith = m_objectsWithoutCollisionCheck.size() > 0;
 	}
 
-        int getNumObjectsWithoutCollision() const
-	{
-		return m_objectsWithoutCollisionCheck.size();
-	}
-
-	const btCollisionObject* getObjectWithoutCollision(int index)
-	{
-		return m_objectsWithoutCollisionCheck[index];
-	}
-
 	virtual bool checkCollideWithOverride(const btCollisionObject* co) const
 	{
 		int index = m_objectsWithoutCollisionCheck.findLinearSearch(co);
@@ -288,7 +279,7 @@ public:
 
 	SIMD_FORCE_INLINE int getActivationState() const { return m_activationState1; }
 
-	void setActivationState(int newState) const;
+	void setActivationState(int newState, bool force = false) const;
 
 	void setDeactivationTime(btScalar time)
 	{
@@ -305,7 +296,7 @@ public:
 
 	SIMD_FORCE_INLINE bool isActive() const
 	{
-		return ((getActivationState() != FIXED_BASE_MULTI_BODY) && (getActivationState() != ISLAND_SLEEPING) && (getActivationState() != DISABLE_SIMULATION));
+		return ((getActivationState() != ISLAND_SLEEPING) && (getActivationState() != DISABLE_SIMULATION));
 	}
 
 	void setRestitution(btScalar rest)
@@ -455,11 +446,13 @@ public:
 		m_islandTag1 = tag;
 	}
 
+	/// Get the solver body companion id (internal to solver)
 	SIMD_FORCE_INLINE int getCompanionId() const
 	{
 		return m_companionId;
 	}
 
+	/// Set the solver body companion id (internal to solver)
 	void setCompanionId(int id)
 	{
 		m_companionId = id;
@@ -570,6 +563,16 @@ public:
 	int getUpdateRevisionInternal() const
 	{
 		return m_updateRevision;
+	}
+
+	void setDebugName(const char* pName)
+	{
+		m_pDebugName = pName;
+	}
+
+	const char* getDebugName() const
+	{
+		return m_pDebugName;
 	}
 
 	void setCustomDebugColor(const btVector3& colorRGB)

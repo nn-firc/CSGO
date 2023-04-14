@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -171,8 +171,6 @@ void btSimulationIslandManagerMt::initIslandPools()
 
 btSimulationIslandManagerMt::Island* btSimulationIslandManagerMt::getIsland(int id)
 {
-	btAssert(id >= 0);
-	btAssert(id < m_lookupIslandFromId.size());
 	Island* island = m_lookupIslandFromId[id];
 	if (island == NULL)
 	{

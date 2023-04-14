@@ -187,7 +187,7 @@ void CShadowController::MaxSpeed(float maxSpeed, float maxAngularSpeed) {
 	//----------------
 
 	btVector3 bullSpeed;
-	ConvertPosToBull(Vector(maxSpeed), bullSpeed);
+	ConvertPosToBull(Vector(maxSpeed, maxSpeed, maxSpeed), bullSpeed);
 	btVector3 available = bullSpeed;
 
 	// m_currentSpeed = bullSpeed;
@@ -209,7 +209,7 @@ void CShadowController::MaxSpeed(float maxSpeed, float maxAngularSpeed) {
 	//----------------
 
 	btVector3 bullAngular;
-	ConvertAngularImpulseToBull(Vector(maxAngularSpeed), bullAngular);
+	ConvertAngularImpulseToBull(Vector(maxAngularSpeed, maxAngularSpeed, maxAngularSpeed), bullAngular);
 	btVector3 availableAngular;
 
 	float lengthAngular = bullAngular.length();

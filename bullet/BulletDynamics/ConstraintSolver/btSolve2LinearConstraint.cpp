@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -222,17 +222,17 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 /*
 void btSolve2LinearConstraint::resolveAngularConstraint(	const btMatrix3x3& invInertiaAWS,
 											const btScalar invMassA,
-											const btVector3& linvelA,const btVector3& angvelA,
+											const btVector3& linvelA, const btVector3& angvelA,
 											const btVector3& rel_posA1,
 											const btMatrix3x3& invInertiaBWS,
 											const btScalar invMassB,
-											const btVector3& linvelB,const btVector3& angvelB,
+											const btVector3& linvelB, const btVector3& angvelB,
 											const btVector3& rel_posA2,
 
 											btScalar depthA, const btVector3& normalA, 
-											const btVector3& rel_posB1,const btVector3& rel_posB2,
+											const btVector3& rel_posB1, const btVector3& rel_posB2,
 											btScalar depthB, const btVector3& normalB, 
-											btScalar& imp0,btScalar& imp1)
+											btScalar& imp0, btScalar& imp1)
 {
 
 }

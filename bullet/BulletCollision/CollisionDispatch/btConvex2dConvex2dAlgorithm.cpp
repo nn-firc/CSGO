@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -160,7 +160,7 @@ btScalar btConvex2dConvex2dAlgorithm::calculateTimeOfImpact(btCollisionObject* c
 		btSphereShape sphere1(col1->getCcdSweptSphereRadius());  //todo: allow non-zero sphere sizes, for better approximation
 		btConvexCast::CastResult result;
 		btVoronoiSimplexSolver voronoiSimplex;
-		//SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
+		//SubsimplexConvexCast ccd0(&sphere, min0, &voronoiSimplex);
 		///Simplification, one object is simplified as a sphere
 		btGjkConvexCast ccd1(convex0, &sphere1, &voronoiSimplex);
 		//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
@@ -187,7 +187,7 @@ btScalar btConvex2dConvex2dAlgorithm::calculateTimeOfImpact(btCollisionObject* c
 		btSphereShape sphere0(col0->getCcdSweptSphereRadius());  //todo: allow non-zero sphere sizes, for better approximation
 		btConvexCast::CastResult result;
 		btVoronoiSimplexSolver voronoiSimplex;
-		//SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
+		//SubsimplexConvexCast ccd0(&sphere, min0, &voronoiSimplex);
 		///Simplification, one object is simplified as a sphere
 		btGjkConvexCast ccd1(&sphere0, convex1, &voronoiSimplex);
 		//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);

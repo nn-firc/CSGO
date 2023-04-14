@@ -76,8 +76,6 @@ protected:
 
 	virtual void calculateSimulationIslands();
 
-	
-
 	virtual void updateActivationState(btScalar timeStep);
 
 	void updateActions(btScalar timeStep);
@@ -95,7 +93,7 @@ protected:
 	void serializeRigidBodies(btSerializer * serializer);
 
 	void serializeDynamicsWorldInfo(btSerializer * serializer);
-    
+
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
@@ -105,10 +103,11 @@ public:
 	virtual ~btDiscreteDynamicsWorld();
 
 	///if maxSubSteps > 0, it will interpolate motion between fixedTimeStep's
-	virtual int stepSimulation(btScalar timeStep, int maxSubSteps = 1, btScalar fixedTimeStep = btScalar(1.) / btScalar(60.));
+	// fixedSubSteps is how many substeps to do within the fixed timestep
+	virtual int stepSimulation(btScalar timeStep, int maxSubSteps = 1, btScalar fixedTimeStep = btScalar(1.) / btScalar(60.), int fixedSubSteps = 1);
 
-    virtual void solveConstraints(btContactSolverInfo & solverInfo);
-    
+	virtual void solveConstraints(btContactSolverInfo & solverInfo);
+
 	virtual void synchronizeMotionStates();
 
 	///this can be useful to synchronize a single rigid body -> graphics object
@@ -229,16 +228,16 @@ public:
 	{
 		return m_latencyMotionStateInterpolation;
 	}
-    
-    btAlignedObjectArray<btRigidBody*>& getNonStaticRigidBodies()
-    {
-        return m_nonStaticRigidBodies;
-    }
-    
-    const btAlignedObjectArray<btRigidBody*>& getNonStaticRigidBodies() const
-    {
-        return m_nonStaticRigidBodies;
-    }
+
+	btAlignedObjectArray<btRigidBody*>& getNonStaticRigidBodies()
+	{
+		return m_nonStaticRigidBodies;
+	}
+
+	const btAlignedObjectArray<btRigidBody*>& getNonStaticRigidBodies() const
+	{
+		return m_nonStaticRigidBodies;
+	}
 };
 
 #endif  //BT_DISCRETE_DYNAMICS_WORLD_H

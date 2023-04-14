@@ -3,7 +3,7 @@
  * Original version is from Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.
  * All rights reserved.  Email: russ@q12.org   Web: www.q12.org
  Bullet Continuous Collision Detection and Physics Library
- Bullet is Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+ Bullet is Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -107,10 +107,10 @@ void dLineClosestApproach(const btVector3& pa, const btVector3& ua,
 }
 
 // find all the intersection points between the 2D rectangle with vertices
-// at (+/-h[0],+/-h[1]) and the 2D quadrilateral with vertices (p[0],p[1]),
-// (p[2],p[3]),(p[4],p[5]),(p[6],p[7]).
+// at (+/-h[0],+/-h[1]) and the 2D quadrilateral with vertices (p[0], p[1]),
+// (p[2], p[3]), (p[4], p[5]), (p[6], p[7]).
 //
-// the intersection points are returned as x,y pairs in the 'ret' array.
+// the intersection points are returned as x, y pairs in the 'ret' array.
 // the number of intersection points is returned by the function (this will
 // be in the range 0 to 8).
 

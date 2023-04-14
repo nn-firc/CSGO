@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-#include <tier1/KeyValues.h>
+#include <tier1/keyvalues.h>
 
 #include "Physics_SurfaceProps.h"
 
@@ -95,13 +95,42 @@ int CPhysicsSurfaceProps::ParseSurfaceData(const char *pFilename, const char *pT
 				} else {
 					prop.data.game.material = data->GetInt();
 				}
-			} else if (!Q_stricmp(key, "stepleft")) {
-				CUtlSymbol sym = m_strings->AddString(data->GetString());
-				prop.data.sounds.stepleft = FindOrAddSound(sym);
-			} else if (!Q_stricmp(key, "stepright")) {
-				CUtlSymbol sym = m_strings->AddString(data->GetString());
-				prop.data.sounds.stepright = FindOrAddSound(sym);
-			} else if (!Q_stricmp(key, "impactsoft")) {
+			}
+            // lwss: rework these for csgo
+            else if ( !strcmpi( key, "stepleft" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.runStepLeft = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "stepright" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.runStepRight = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "walkLeft" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.walkStepLeft = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "walkRight" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.walkStepRight = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "runLeft" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.runStepLeft = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "runRight" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.sounds.runStepRight = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "penetrationmodifier" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.game.penetrationModifier = FindOrAddSound( sym );
+            }
+            else if ( !strcmpi( key, "damagemodifier" ) ) {
+                CUtlSymbol sym = m_strings->AddString(data->GetString());
+                prop.data.game.damageModifier = FindOrAddSound( sym );
+            }
+            // lwss end
+            else if (!Q_stricmp(key, "impactsoft")) {
 				CUtlSymbol sym = m_strings->AddString(data->GetString());
 				prop.data.sounds.impactSoft = FindOrAddSound(sym);
 			} else if (!Q_stricmp(key, "impacthard")) {
@@ -147,7 +176,7 @@ int CPhysicsSurfaceProps::GetSurfaceIndex(const char *pSurfacePropName) const {
 
 	CUtlSymbol id = m_strings->Find(pSurfacePropName);
 	if (id.IsValid()) {
-		for (int i = 0; i < m_props.Size(); i++) {
+		for (int i = 0; i < m_props.Count(); i++) {
 			if (m_props[i].m_name == id)
 				return i;
 		}
@@ -183,7 +212,7 @@ const char *CPhysicsSurfaceProps::GetString(unsigned short stringTableIndex) con
 }
 
 const char *CPhysicsSurfaceProps::GetPropName(int surfaceDataIndex) const {
-	if (surfaceDataIndex < 0 || surfaceDataIndex > m_props.Size())
+	if (surfaceDataIndex < 0 || surfaceDataIndex > m_props.Count())
 		return "default";
 
 	return m_strings->String(m_props[surfaceDataIndex].m_name);
@@ -210,14 +239,14 @@ int CPhysicsSurfaceProps::GetReservedSurfaceIndex(const char *pSurfacePropName) 
 }
 
 CSurface *CPhysicsSurfaceProps::GetInternalSurface(int materialIndex) {
-	if (materialIndex < 0 || materialIndex > m_props.Size()-1)
+	if (materialIndex < 0 || materialIndex > m_props.Count()-1)
 		return NULL;
 
 	return &m_props[materialIndex];
 }
 
 const CSurface *CPhysicsSurfaceProps::GetInternalSurface(int materialIndex) const {
-	if (materialIndex < 0 || materialIndex > m_props.Size()-1)
+	if (materialIndex < 0 || materialIndex > m_props.Count()-1)
 		return NULL;
 
 	return &m_props[materialIndex];
@@ -235,7 +264,7 @@ void CPhysicsSurfaceProps::CopyPhysicsProperties(CSurface *pOut, int baseIndex) 
 bool CPhysicsSurfaceProps::AddFileToDatabase(const char *pFilename) {
 	CUtlSymbol id = m_strings->AddString(pFilename);
 
-	for (int i = 0; i < m_fileList.Size(); i++)
+	for (int i = 0; i < m_fileList.Count(); i++)
 		if (m_fileList[i] == id) return false;
 
 	m_fileList.AddToTail(id);

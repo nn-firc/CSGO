@@ -1,7 +1,7 @@
 
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -233,7 +233,7 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher, btCollisi
 				//				printf("error in island management\n");
 			}
 
-            btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
+			btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
 			if (colObj0->getIslandTag() == islandId)
 			{
 				if (colObj0->getActivationState() == ACTIVE_TAG ||
@@ -257,7 +257,7 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher, btCollisi
 					//					printf("error in island management\n");
 				}
 
-                btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
+				btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
 
 				if (colObj0->getIslandTag() == islandId)
 				{
@@ -278,8 +278,7 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher, btCollisi
 					//					printf("error in island management\n");
 				}
 
-                 btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
-
+				btAssert((colObj0->getIslandTag() == islandId) || (colObj0->getIslandTag() == -1));
 
 				if (colObj0->getIslandTag() == islandId)
 				{
@@ -338,17 +337,16 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher, btCollisi
 	}
 }
 
-
 ///@todo: this is random access, it can be walked 'cache friendly'!
 void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher, btCollisionWorld* collisionWorld, IslandCallback* callback)
 {
 	buildIslands(dispatcher, collisionWorld);
-    processIslands(dispatcher, collisionWorld, callback);
+	processIslands(dispatcher, collisionWorld, callback);
 }
 
 void btSimulationIslandManager::processIslands(btDispatcher* dispatcher, btCollisionWorld* collisionWorld, IslandCallback* callback)
 {
-    btCollisionObjectArray& collisionObjects = collisionWorld->getCollisionObjectArray();
+	btCollisionObjectArray& collisionObjects = collisionWorld->getCollisionObjectArray();
 	int endIslandIndex = 1;
 	int startIslandIndex;
 	int numElem = getUnionFind().getNumElements();
@@ -399,7 +397,6 @@ void btSimulationIslandManager::processIslands(btDispatcher* dispatcher, btColli
 			int islandId = getUnionFind().getElement(startIslandIndex).m_id;
 
 			bool islandSleeping = true;
-
 			for (endIslandIndex = startIslandIndex; (endIslandIndex < numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId); endIslandIndex++)
 			{
 				int i = getUnionFind().getElement(endIslandIndex).m_sz;

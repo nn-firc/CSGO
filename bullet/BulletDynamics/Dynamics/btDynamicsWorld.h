@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -35,7 +35,7 @@ enum btDynamicsWorldType
 	BT_SOFT_RIGID_DYNAMICS_WORLD = 4,
 	BT_GPU_DYNAMICS_WORLD = 5,
 	BT_SOFT_MULTIBODY_DYNAMICS_WORLD = 6,
-    BT_DEFORMABLE_MULTIBODY_DYNAMICS_WORLD = 7
+	BT_DEFORMABLE_MULTIBODY_DYNAMICS_WORLD = 7
 };
 
 ///The btDynamicsWorld is the interface class for several dynamics implementation, basic, discrete, parallel, and continuous etc.
@@ -62,7 +62,7 @@ public:
 	///By default, Bullet will subdivide the timestep in constant substeps of each 'fixedTimeStep'.
 	///in order to keep the simulation real-time, the maximum number of substeps can be clamped to 'maxSubSteps'.
 	///You can disable subdividing the timestep/substepping by passing maxSubSteps=0 as second argument to stepSimulation, but in that case you have to keep the timeStep constant.
-	virtual int stepSimulation(btScalar timeStep, int maxSubSteps = 1, btScalar fixedTimeStep = btScalar(1.) / btScalar(60.)) = 0;
+	virtual int stepSimulation(btScalar timeStep, int maxSubSteps = 1, btScalar fixedTimeStep = btScalar(1.) / btScalar(60.), int fixedSubSteps = 1) = 0;
 
 	virtual void debugDrawWorld() = 0;
 

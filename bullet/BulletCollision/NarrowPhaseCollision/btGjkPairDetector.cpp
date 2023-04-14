@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -18,7 +18,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
 #include "BulletCollision/NarrowPhaseCollision/btConvexPenetrationDepthSolver.h"
 
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(BT_DEBUG)
 //#define TEST_NON_VIRTUAL 1
 #include <stdio.h>  //for debug printf
 #ifdef __SPU__
@@ -35,7 +35,6 @@ btScalar gGjkEpaPenetrationTolerance = 1.0e-12;
 #define REL_ERROR2 btScalar(1.0e-6)
 btScalar gGjkEpaPenetrationTolerance = 0.001;
 #endif
-
 
 btGjkPairDetector::btGjkPairDetector(const btConvexShape *objectA, const btConvexShape *objectB, btSimplexSolverInterface *simplexSolver, btConvexPenetrationDepthSolver *penetrationDepthSolver)
 	: m_cachedSeparatingAxis(btScalar(0.), btScalar(1.), btScalar(0.)),
@@ -705,7 +704,6 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput &inpu
 	btScalar marginA = m_marginA;
 	btScalar marginB = m_marginB;
 
-
 	//for CCD we don't use margins
 	if (m_ignoreMargin)
 	{
@@ -715,7 +713,13 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput &inpu
 
 	m_curIter = 0;
 	int gGjkMaxIter = 1000;  //this is to catch invalid input, perhaps check for #NaN?
-	m_cachedSeparatingAxis.setValue(0, 1, 0);
+
+	// Warm start cached separating axis
+	//m_cachedSeparatingAxis = localTransA.getOrigin() - localTransB.getOrigin();
+	if (m_cachedSeparatingAxis.length2() > SIMD_EPSILON)
+		m_cachedSeparatingAxis.normalize();
+	else
+		m_cachedSeparatingAxis.setValue(0, 1, 0);
 
 	bool isValid = false;
 	bool checkSimplex = false;
@@ -834,7 +838,7 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput &inpu
 			//printf("not intersect\n");
 		}
 		//printf("dir=%f,%f,%f\n",dir[0],dir[1],dir[2]);
-		if (1)
+		if (true)
 		{
 			for (;;)
 			//while (true)
@@ -941,16 +945,16 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput &inpu
 				//degeneracy, this is typically due to invalid/uninitialized worldtransforms for a btCollisionObject
 				if (m_curIter++ > gGjkMaxIter)
 				{
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(BT_DEBUG) || defined(DEBUG_SPU_COLLISION_DETECTION)
 
-					printf("btGjkPairDetector maxIter exceeded:%i\n", m_curIter);
-					printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",
-						   m_cachedSeparatingAxis.getX(),
-						   m_cachedSeparatingAxis.getY(),
-						   m_cachedSeparatingAxis.getZ(),
-						   squaredDistance,
-						   m_minkowskiA->getShapeType(),
-						   m_minkowskiB->getShapeType());
+					btDbgWarning("btGjkPairDetector maxIter exceeded:%i\n", m_curIter);
+					btDbgWarning("sepAxis=(%f, %f, %f), squaredDistance = %f, shapeTypeA=%i, shapeTypeB=%i\n",
+								 m_cachedSeparatingAxis.getX(),
+								 m_cachedSeparatingAxis.getY(),
+								 m_cachedSeparatingAxis.getZ(),
+								 squaredDistance,
+								 m_minkowskiA->getShapeType(),
+								 m_minkowskiB->getShapeType());
 
 #endif
 					break;
@@ -1107,7 +1111,7 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput &inpu
 	{
 		m_cachedSeparatingAxis = normalInB;
 		m_cachedSeparatingDistance = distance;
-		if (1)
+		if (true)
 		{
 			///todo: need to track down this EPA penetration solver degeneracy
 			///the penetration solver reports penetration but the contact normal

@@ -7,12 +7,11 @@
 #include <vphysics/performance.h>
 #include <vphysics/stats.h>
 
-class btThreadPool;
+class CPhysThreadManager;
 class btCollisionConfiguration;
 class btDispatcher;
 class btBroadphaseInterface;
 class btConstraintSolver;
-class btSoftRigidDynamicsWorld;
 
 class IPhysicsConstraintGroup;
 class IPhysicsUserConstraint;
@@ -26,12 +25,9 @@ class CPhysicsDragController;
 class CPhysicsEnvironment;
 class CPhysicsConstraint;
 class CPhysicsObject;
-class CPhysicsSoftBody;
+class btConstraintSolverPoolMt;
 
 class CDebugDrawer;
-
-// Temporary; remove later
-class IPhysicsSoftBody;
 
 class CCollisionSolver : public btOverlapFilterCallback {
 	public:
@@ -45,20 +41,25 @@ class CCollisionSolver : public btOverlapFilterCallback {
 		CPhysicsEnvironment *m_pEnv;
 };
 
+enum SolverType
+{
+	SOLVER_TYPE_SEQUENTIAL_IMPULSE,
+	SOLVER_TYPE_SEQUENTIAL_IMPULSE_MT,
+	SOLVER_TYPE_NNCG,
+	SOLVER_TYPE_MLCP_PGS,
+	SOLVER_TYPE_MLCP_DANTZIG,
+	SOLVER_TYPE_MLCP_LEMKE,
+	SOLVER_TYPE_COUNT
+};
+
 class CPhysicsEnvironment : public IPhysicsEnvironment32 {
 public:
 	CPhysicsEnvironment();
 	~CPhysicsEnvironment();
 
-	void									ChangeThreadCount(int newCount);
-
-	// UNEXPOSED
-	// Don't call this directly!
-	static void								TickCallback(btDynamicsWorld *world, btScalar timestep);
-
-	void									SetDebugOverlay(CreateInterfaceFn debugOverlayFactory);
+	void									SetDebugOverlay(CreateInterfaceFn debugOverlayFactory) { /* Do Nothing */}
 	IVPhysicsDebugOverlay *					GetDebugOverlay();
-	btIDebugDraw *							GetDebugDrawer();
+	btIDebugDraw *							GetDebugDrawer() const;
 
 	void									SetGravity(const Vector &gravityVector);
 	void									GetGravity(Vector *pGravityVector) const;
@@ -71,12 +72,6 @@ public:
 	// Deprecated. Use the collision interface instead.
 	IPhysicsObject *						CreateSphereObject(float radius, int materialIndex, const Vector &position, const QAngle &angles, objectparams_t *pParams, bool isStatic = false);
 	void									DestroyObject(IPhysicsObject *pObject);
-
-	IPhysicsSoftBody *						CreateSoftBody();
-	IPhysicsSoftBody *						CreateSoftBodyFromVertices(const Vector *vertices, int numVertices, const softbodyparams_t *pParams);
-	IPhysicsSoftBody *						CreateSoftBodyRope(const Vector &pos, const Vector &end, int resolution, const softbodyparams_t *pParams);
-	IPhysicsSoftBody *						CreateSoftBodyPatch(const Vector *corners, int resx, int resy, const softbodyparams_t *pParams);
-	void									DestroySoftBody(IPhysicsSoftBody *pSoftBody);
 
 	IPhysicsFluidController	*				CreateFluidController(IPhysicsObject *pFluidObject, fluidparams_t *pParams);
 	void									DestroyFluidController(IPhysicsFluidController*);
@@ -113,7 +108,6 @@ public:
 
 	void									SetCollisionSolver(IPhysicsCollisionSolver *pSolver);
 
-	void									Simulate(float deltaTime);
 	bool									IsInSimulation() const;
 
 	float									GetSimulationTimestep() const;
@@ -145,6 +139,20 @@ public:
 	bool									Restore(const physrestoreparams_t &params);
 	void									PostRestore();
 
+    //lwss add
+    void		                        	SetAlternateGravity( const Vector &gravityVector ) override;
+    void                                    GetAlternateGravity( Vector *pGravityVector ) const override;
+    float                                   GetDeltaFrameTime( int maxTicks ) const override;
+    void                                    ForceObjectsToSleep( IPhysicsObject **pList, int listCount ) override;
+    void                                    SetPredicted( bool bPredicted ) override; //Interaction with this system and it's objects may not always march forward, sometimes it will get/set data in the past.
+    bool                                    IsPredicted( void ) override;
+    void                                    SetPredictionCommandNum( int iCommandNum ) override; //what command the client is working on right now
+    int                                     GetPredictionCommandNum( void ) override;
+    void                                    DoneReferencingPreviousCommands( int iCommandNum ) override; //won't need data from commands before this one any more
+    void                                    RestorePredictedSimulation( void ) override; //called to restore results from a previous simulation with the same predicted timestamp set
+    void                                    DestroyCollideOnDeadObjectFlush( CPhysCollide * ) override;
+    //lwss end
+
 	bool									IsCollisionModelUsed(CPhysCollide *pCollide) const;
 	
 	void									TraceRay(const Ray_t &ray, unsigned int fMask, IPhysicsTraceFilter *pTraceFilter, trace_t *pTrace);
@@ -165,37 +173,33 @@ public:
 	void									DebugCheckContacts();
 public:
 	// Unexposed functions
-	btSoftRigidDynamicsWorld *				GetBulletEnvironment();
+	btDiscreteDynamicsWorld*				GetBulletEnvironment() const;
 
-	float									GetInvPSIScale();
+	float									GetInvPSIScale() const;
 	int										GetSimPSI() { return m_simPSI; }
 	float									GetSubStepTime() { return m_subStepTime; }
 	int										GetNumSubSteps() { return m_numSubSteps; }
 	int										GetCurSubStep() { return m_curSubStep; }
+	btVector3                               GetDesiredRagdollGravity() { return m_vecRagdollGravity; }
 
-	void									BulletTick(btScalar timeStep);
-	CPhysicsDragController *				GetDragController();
-	CCollisionSolver *						GetCollisionSolver();
+	CPhysicsDragController *				GetDragController() const;
+	CCollisionSolver *						GetCollisionSolver() const;
 
 	physics_performanceparams_t &			GetPerformanceSettings() { return m_perfparams; }
 	const physics_performanceparams_t &		GetPerformanceSettings() const { return m_perfparams; }
 	btVector3								GetMaxLinearVelocity() const;
 	btVector3								GetMaxAngularVelocity() const;
 
-	btThreadPool *							GetSharedThreadPool() const { return m_pSharedThreadPool; }
+	void									HandleConstraintBroken(CPhysicsConstraint *pConstraint) const; // Call this if you're a constraint that was just disabled/broken.
+	void									HandleFluidStartTouch(CPhysicsFluidController *pController, CPhysicsObject *pObject) const;
+	void									HandleFluidEndTouch(CPhysicsFluidController *pController, CPhysicsObject *pObject) const;
+	void									HandleObjectEnteredTrigger(CPhysicsObject *pTrigger, CPhysicsObject *pObject) const;
+	void									HandleObjectExitedTrigger(CPhysicsObject *pTrigger, CPhysicsObject *pObject) const;
 
-	void									DoCollisionEvents(float dt);
-
-	void									HandleConstraintBroken(CPhysicsConstraint *pConstraint); // Call this if you're a constraint that was just disabled/broken.
-	void									HandleFluidStartTouch(CPhysicsFluidController *pController, CPhysicsObject *pObject);
-	void									HandleFluidEndTouch(CPhysicsFluidController *pController, CPhysicsObject *pObject);
-	void									HandleObjectEnteredTrigger(CPhysicsObject *pTrigger, CPhysicsObject *pObject);
-	void									HandleObjectExitedTrigger(CPhysicsObject *pTrigger, CPhysicsObject *pObject);
-
-	btSoftBodyWorldInfo &					GetSoftBodyWorldInfo() { return m_softBodyWorldInfo; }
-
-	// Soft body functions we'll expose at a later time...
 private:
+	SolverType								m_solverType;
+	bool									m_multithreadedWorld;
+	bool									m_multithreadCapable;
 	bool									m_inSimulation;
 	bool									m_bUseDeleteQueue;
 	bool									m_bConstraintNotify;
@@ -207,20 +211,20 @@ private:
 	int										m_numSubSteps;
 	int										m_curSubStep;
 	float									m_subStepTime;
+	//lwss add
+	float                                   m_simTime; // current time in simulation. ( goes up += deltaTime in simulation steps )
+	//lwss end
 
-	btThreadPool *							m_pSharedThreadPool;
 	btCollisionConfiguration *				m_pBulletConfiguration;
 	btCollisionDispatcher *					m_pBulletDispatcher;
 	btBroadphaseInterface *					m_pBulletBroadphase;
 	btConstraintSolver *					m_pBulletSolver;
-	btSoftRigidDynamicsWorld *				m_pBulletEnvironment;
+	btDiscreteDynamicsWorld *				m_pBulletDynamicsWorld;
 	btOverlappingPairCallback *				m_pBulletGhostCallback;
-	btSoftBodyWorldInfo						m_softBodyWorldInfo;
 
 	CUtlVector<IPhysicsObject *>			m_objects;
 	CUtlVector<IPhysicsObject *>			m_deadObjects;
-	
-	CUtlVector<IPhysicsSoftBody *>			m_softBodies;
+
 	CUtlVector<CPhysicsFluidController *>	m_fluids;
 	CUtlVector<IController *>				m_controllers;
 
@@ -239,6 +243,21 @@ private:
 	physics_stats_t							m_stats;
 
 	CDebugDrawer *							m_debugdraw;
+
+	CPhysThreadManager*						m_pThreadManager;
+
+    //lwss add
+    bool                                    m_predictionEnabled; //+273 bytes in debug bin
+    int                                     m_predictionCmdNum; //+69 bytes
+    btVector3                               m_vecRagdollGravity;
+    //lwss end
+
+private:
+	static void								TickCallback(btDynamicsWorld *world, btScalar timestep);
+	void									BulletTick(btScalar timeStep);
+	void									DoCollisionEvents(float dt);
+	void									Simulate(float deltaTime);
+	void									CreateEmptyDynamicsWorld();
 };
 
 #endif // PHYSICS_ENVIRONMENT_H

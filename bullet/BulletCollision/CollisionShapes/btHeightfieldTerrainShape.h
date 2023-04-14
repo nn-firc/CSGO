@@ -50,15 +50,17 @@ subject to the following restrictions:
   The heightfield heights are determined from the data type used for the
   heightfieldData array.  
 
-   - unsigned char: height at a point is the uchar value at the
+   - PHY_UCHAR: height at a point is the uchar value at the
        grid point, multipled by heightScale.  uchar isn't recommended
        because of its inability to deal with negative values, and
        low resolution (8-bit).
 
-   - short: height at a point is the short int value at that grid
+   - PHY_SHORT: height at a point is the short int value at that grid
        point, multipled by heightScale.
 
-   - float or dobule: height at a point is the value at that grid point.
+   - PHY_FLOAT: height at a point is the float value at that grid
+       point.  heightScale is ignored when using the float heightfield
+       data type.
 
   Whatever the caller specifies as minHeight and maxHeight will be honored.
   The class will not inspect the heightfield to discover the actual minimum
@@ -73,14 +75,6 @@ btHeightfieldTerrainShape : public btConcaveShape
 public:
 	struct Range
 	{
-		Range() {}
-		Range(btScalar min, btScalar max) : min(min), max(max) {}
-
-		bool overlaps(const Range& other) const
-		{
-			return !(min > other.max || max < other.min);
-		}
-
 		btScalar min;
 		btScalar max;
 	};
@@ -101,8 +95,7 @@ protected:
 	union {
 		const unsigned char* m_heightfieldDataUnsignedChar;
 		const short* m_heightfieldDataShort;
-		const float* m_heightfieldDataFloat;
-		const double* m_heightfieldDataDouble;
+		const btScalar* m_heightfieldDataFloat;
 		const void* m_heightfieldDataUnknown;
 	};
 
@@ -121,7 +114,7 @@ protected:
 	int m_vboundsGridLength;
 	int m_vboundsChunkSize;
 
-	
+	int m_userIndex2;
 	btScalar m_userValue3;
 
 	struct btTriangleInfoMap* m_triangleInfoMap;
@@ -142,33 +135,11 @@ protected:
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-	/// preferred constructors
-	btHeightfieldTerrainShape(
-		int heightStickWidth, int heightStickLength,
-		const float* heightfieldData, btScalar minHeight, btScalar maxHeight,
-		int upAxis, bool flipQuadEdges);
-	btHeightfieldTerrainShape(
-		int heightStickWidth, int heightStickLength,
-		const double* heightfieldData, btScalar minHeight, btScalar maxHeight,
-		int upAxis, bool flipQuadEdges);
-	btHeightfieldTerrainShape(
-		int heightStickWidth, int heightStickLength,
-		const short* heightfieldData, btScalar heightScale, btScalar minHeight, btScalar maxHeight,
-		int upAxis, bool flipQuadEdges);
-	btHeightfieldTerrainShape(
-		int heightStickWidth, int heightStickLength,
-		const unsigned char* heightfieldData, btScalar heightScale, btScalar minHeight, btScalar maxHeight,
-		int upAxis, bool flipQuadEdges);
-
-	/// legacy constructor
+	/// preferred constructor
 	/**
 	  This constructor supports a range of heightfield
 	  data types, and allows for a non-zero minimum height value.
 	  heightScale is needed for any integer-based heightfield data types.
-
-	  This legacy constructor considers `PHY_FLOAT` to mean `btScalar`.
-	  With `BT_USE_DOUBLE_PRECISION`, it will expect `heightfieldData`
-	  to be double-precision.
 	 */
 	btHeightfieldTerrainShape(int heightStickWidth, int heightStickLength,
 							  const void* heightfieldData, btScalar heightScale,
@@ -179,7 +150,7 @@ public:
 	/// legacy constructor
 	/**
 	  The legacy constructor assumes the heightfield has a minimum height
-	  of zero.  Only unsigned char or btScalar data are supported.  For legacy
+	  of zero.  Only unsigned char or floats are supported.  For legacy
 	  compatibility reasons, heightScale is calculated as maxHeight / 65535 
 	  (and is only used when useFloatData = false).
  	 */
@@ -220,7 +191,14 @@ public:
 	//debugging
 	virtual const char* getName() const { return "HEIGHTFIELD"; }
 
-	
+	void setUserIndex2(int index)
+	{
+		m_userIndex2 = index;
+	}
+	int getUserIndex2() const
+	{
+		return m_userIndex2;
+	}
 	void setUserValue3(btScalar value)
 	{
 		m_userValue3 = value;
@@ -237,7 +215,7 @@ public:
 	{
 		return m_triangleInfoMap;
 	}
-	void setTriangleInfoMap(btTriangleInfoMap* map)
+	void setTriangleInfoMap(btTriangleInfoMap * map)
 	{
 		m_triangleInfoMap = map;
 	}

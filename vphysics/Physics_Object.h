@@ -70,7 +70,7 @@ class CPhysicsObject : public IPhysicsObject32 {
 		void								Sleep();
 
 		void								RecheckCollisionFilter();
-		void								RecheckContactPoints();
+		void								RecheckContactPoints(bool bSearchForNewContacts = false); //lwss add bool for new version
 
 		void								SetMass(float mass);
 		float								GetMass() const;
@@ -81,6 +81,7 @@ class CPhysicsObject : public IPhysicsObject32 {
 		void								SetInertia(const Vector &inertia);
 
 		void								SetLocalGravity(const Vector &gravityVector);
+		void 								SetLocalGravity(const btVector3 &gravityVector); // already converted to bullet.
 		Vector								GetLocalGravity() const;
 
 		void								SetDamping(const float *speed, const float *rot);
@@ -99,7 +100,9 @@ class CPhysicsObject : public IPhysicsObject32 {
 		void								GetSleepThresholds(float *linVel, float *angVel) const;
 
 		float								GetSphereRadius() const;
-		float								GetEnergy() const;
+        void                                SetSphereRadius(float radius); // lwss add
+
+        float								GetEnergy() const;
 		Vector								GetMassCenterLocalSpace() const;
 
 		void								SetPosition(const Vector &worldPosition, const QAngle &angles, bool isTeleport);
@@ -169,6 +172,14 @@ class CPhysicsObject : public IPhysicsObject32 {
 
 		CPhysicsEnvironment *				GetVPhysicsEnvironment();
 		btRigidBody *						GetObject();
+
+        //lwss add
+        void			                    SetUseAlternateGravity( bool bSet );
+        void			                    SetCollisionHints( uint32 collisionHints );
+        uint32			                    GetCollisionHints() const;
+        IPredictedPhysicsObject *           GetPredictedInterface( void ) const ;
+        void			                    SyncWith( IPhysicsObject *pOther );
+        //lwss end
 
 		void								AttachedToConstraint(CPhysicsConstraint *pConstraint);
 		void								DetachedFromConstraint(CPhysicsConstraint *pConstraint);
@@ -240,6 +251,10 @@ class CPhysicsObject : public IPhysicsObject32 {
 		CUtlVector<IObjectEventListener *>	m_pEventListeners;
 
 		int									m_iLastActivationState;
+
+        //lwss add
+        uint32          m_collisionHints;
+        //lwss end
 };
 
 CPhysicsObject *CreatePhysicsObject(CPhysicsEnvironment *pEnvironment, const CPhysCollide *pCollisionModel, int materialIndex, const Vector &position, const QAngle &angles, objectparams_t *pParams, bool isStatic);

@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -46,6 +46,7 @@ enum btRigidBodyFlags
 	BT_ENABLE_GYROSCOPIC_FORCE_IMPLICIT_WORLD = 4,
 	BT_ENABLE_GYROSCOPIC_FORCE_IMPLICIT_BODY = 8,
 	BT_ENABLE_GYROPSCOPIC_FORCE = BT_ENABLE_GYROSCOPIC_FORCE_IMPLICIT_BODY,
+	BT_DISABLE_MOTION = 16
 };
 
 ///The btRigidBody is the main class for rigid body objects. It is derived from btCollisionObject, so it keeps a pointer to a btCollisionShape.
@@ -63,6 +64,7 @@ class btRigidBody : public btCollisionObject
 	btVector3 m_angularVelocity;
 	btScalar m_inverseMass;
 	btVector3 m_linearFactor;
+	btVector3 m_centerOfMassOffset;
 
 	btVector3 m_gravity;
 	btVector3 m_gravity_acceleration;
@@ -205,8 +207,8 @@ public:
 	void saveKinematicState(btScalar step);
 
 	void applyGravity();
-    
-    void clearGravity();
+
+	void clearGravity();
 
 	void setGravity(const btVector3& acceleration);
 
@@ -269,7 +271,10 @@ public:
 
 	void integrateVelocities(btScalar step);
 
-	void setCenterOfMassTransform(const btTransform& xform);
+	void setCenterOfMassOffset(const btVector3& offset)
+	{
+		m_centerOfMassOffset = offset;
+	}
 
 	void applyCentralForce(const btVector3& force)
 	{
@@ -305,9 +310,6 @@ public:
 	void applyTorque(const btVector3& torque)
 	{
 		m_totalTorque += torque * m_angularFactor;
-		#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-		clampVelocity(m_totalTorque);
-		#endif
 	}
 
 	void applyForce(const btVector3& force, const btVector3& rel_pos)
@@ -319,17 +321,11 @@ public:
 	void applyCentralImpulse(const btVector3& impulse)
 	{
 		m_linearVelocity += impulse * m_linearFactor * m_inverseMass;
-		#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-		clampVelocity(m_linearVelocity);
-		#endif
 	}
 
 	void applyTorqueImpulse(const btVector3& torque)
 	{
 		m_angularVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
-		#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-		clampVelocity(m_angularVelocity);
-		#endif
 	}
 
 	void applyImpulse(const btVector3& impulse, const btVector3& rel_pos)
@@ -343,74 +339,48 @@ public:
 			}
 		}
 	}
-    
-    void applyPushImpulse(const btVector3& impulse, const btVector3& rel_pos)
-    {
-        if (m_inverseMass != btScalar(0.))
-        {
-            applyCentralPushImpulse(impulse);
-            if (m_angularFactor)
-            {
-                applyTorqueTurnImpulse(rel_pos.cross(impulse * m_linearFactor));
-            }
-        }
-    }
-    
-    btVector3 getPushVelocity() const
-    {
-        return m_pushVelocity;
-    }
-    
-    btVector3 getTurnVelocity() const
-    {
-        return m_turnVelocity;
-    }
-    
-    void setPushVelocity(const btVector3& v)
-    {
-        m_pushVelocity = v;
-    }
 
-    #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-    void clampVelocity(btVector3& v) const {
-        v.setX(
-            fmax(-BT_CLAMP_VELOCITY_TO,
-                 fmin(BT_CLAMP_VELOCITY_TO, v.getX()))
-        );
-        v.setY(
-            fmax(-BT_CLAMP_VELOCITY_TO,
-                 fmin(BT_CLAMP_VELOCITY_TO, v.getY()))
-        );
-        v.setZ(
-            fmax(-BT_CLAMP_VELOCITY_TO,
-                 fmin(BT_CLAMP_VELOCITY_TO, v.getZ()))
-        );
-    }
-    #endif
+	void applyPushImpulse(const btVector3& impulse, const btVector3& rel_pos)
+	{
+		if (m_inverseMass != btScalar(0.))
+		{
+			applyCentralPushImpulse(impulse);
+			if (m_angularFactor)
+			{
+				applyTorqueTurnImpulse(rel_pos.cross(impulse * m_linearFactor));
+			}
+		}
+	}
 
-    void setTurnVelocity(const btVector3& v)
-    {
-        m_turnVelocity = v;
-        #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-        clampVelocity(m_turnVelocity);
-        #endif
-    }
-    
-    void applyCentralPushImpulse(const btVector3& impulse)
-    {
-        m_pushVelocity += impulse * m_linearFactor * m_inverseMass;
-        #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-        clampVelocity(m_pushVelocity);
-        #endif
-    }
-    
-    void applyTorqueTurnImpulse(const btVector3& torque)
-    {
-        m_turnVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
-        #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-        clampVelocity(m_turnVelocity);
-        #endif
-    }
+	btVector3 getPushVelocity()
+	{
+		return m_pushVelocity;
+	}
+
+	btVector3 getTurnVelocity()
+	{
+		return m_turnVelocity;
+	}
+
+	void setPushVelocity(const btVector3& v)
+	{
+		m_pushVelocity = v;
+	}
+
+	void setTurnVelocity(const btVector3& v)
+	{
+		m_turnVelocity = v;
+	}
+
+	void applyCentralPushImpulse(const btVector3& impulse)
+	{
+		m_pushVelocity += impulse * m_linearFactor * m_inverseMass;
+	}
+
+	void applyTorqueTurnImpulse(const btVector3& torque)
+	{
+		m_turnVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
+	}
 
 	void clearForces()
 	{
@@ -420,20 +390,22 @@ public:
 
 	void updateInertiaTensor();
 
-	const btVector3& getCenterOfMassPosition() const
+	const btVector3 getCenterOfMassPosition() const
 	{
-		return m_worldTransform.getOrigin();
+		return (m_worldTransform * btTransform(btMatrix3x3::getIdentity(), m_centerOfMassOffset)).getOrigin();
 	}
 	btQuaternion getOrientation() const;
 
-	const btTransform& getCenterOfMassTransform() const
+	const btTransform getCenterOfMassTransform() const
 	{
-		return m_worldTransform;
+		return m_worldTransform * btTransform(btMatrix3x3::getIdentity(), m_centerOfMassOffset);
 	}
+
 	const btVector3& getLinearVelocity() const
 	{
 		return m_linearVelocity;
 	}
+
 	const btVector3& getAngularVelocity() const
 	{
 		return m_angularVelocity;
@@ -441,20 +413,12 @@ public:
 
 	inline void setLinearVelocity(const btVector3& lin_vel)
 	{
-		m_updateRevision++;
 		m_linearVelocity = lin_vel;
-		#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-		clampVelocity(m_linearVelocity);
-		#endif
 	}
 
 	inline void setAngularVelocity(const btVector3& ang_vel)
 	{
-		m_updateRevision++;
 		m_angularVelocity = ang_vel;
-		#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-		clampVelocity(m_angularVelocity);
-		#endif
 	}
 
 	btVector3 getVelocityInLocalPoint(const btVector3& rel_pos) const
@@ -465,12 +429,6 @@ public:
 		//for kinematic objects, we could also use use:
 		//		return 	(m_worldTransform(rel_pos) - m_interpolationWorldTransform(rel_pos)) / m_kinematicTimeStep;
 	}
-    
-    btVector3 getPushVelocityInLocalPoint(const btVector3& rel_pos) const
-    {
-        //we also calculate lin/ang velocity for kinematic objects
-        return m_pushVelocity + m_turnVelocity.cross(rel_pos);
-    }
 
 	void translate(const btVector3& v)
 	{
@@ -519,8 +477,10 @@ public:
 			return false;
 
 		//disable deactivation
-		if (gDisableDeactivation || (gDeactivationTime == btScalar(0.)))
+		/*
+		if (gDisableDeactivation)
 			return false;
+		*/
 
 		if ((getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION))
 			return true;
@@ -529,6 +489,7 @@ public:
 		{
 			return true;
 		}
+
 		return false;
 	}
 
@@ -567,13 +528,11 @@ public:
 
 	void setAngularFactor(const btVector3& angFac)
 	{
-		m_updateRevision++;
 		m_angularFactor = angFac;
 	}
 
 	void setAngularFactor(btScalar angFac)
 	{
-		m_updateRevision++;
 		m_angularFactor.setValue(angFac, angFac, angFac);
 	}
 	const btVector3& getAngularFactor() const
@@ -585,6 +544,11 @@ public:
 	bool isInWorld() const
 	{
 		return (getBroadphaseProxy() != 0);
+	}
+
+	bool isMotionEnabled() const
+	{
+		return !(getFlags() & BT_DISABLE_MOTION);
 	}
 
 	void addConstraintRef(btTypedConstraint* c);
@@ -629,6 +593,8 @@ public:
 
 	virtual void serializeSingleObject(class btSerializer* serializer) const;
 };
+
+// TODO (DrChat): Need to update the dna str for center of mass offset
 
 //@todo add m_optionalMotionState and m_constraintRefs to btRigidBodyData
 ///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64

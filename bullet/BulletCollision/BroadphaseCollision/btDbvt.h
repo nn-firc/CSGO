@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2007 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -130,7 +130,7 @@ subject to the following restrictions:
 /* btDbvtAabbMm			*/
 struct btDbvtAabbMm
 {
-    DBVT_INLINE btDbvtAabbMm(){}
+	DBVT_INLINE btDbvtAabbMm() {}
 	DBVT_INLINE btVector3 Center() const { return ((mi + mx) / 2); }
 	DBVT_INLINE btVector3 Lengths() const { return (mx - mi); }
 	DBVT_INLINE btVector3 Extents() const { return ((mx - mi) / 2); }
@@ -193,31 +193,28 @@ struct btDbvtNode
 /* btDbv(normal)tNode                */
 struct btDbvntNode
 {
-    btDbvtVolume volume;
-    btVector3 normal;
-    btScalar angle;
-    DBVT_INLINE bool isleaf() const { return (childs[1] == 0); }
-    DBVT_INLINE bool isinternal() const { return (!isleaf()); }
-    btDbvntNode* childs[2];
-    void* data;
+	btDbvtVolume volume;
+	btVector3 normal;
+	btScalar angle;
+	DBVT_INLINE bool isleaf() const { return (childs[1] == 0); }
+	DBVT_INLINE bool isinternal() const { return (!isleaf()); }
+	btDbvntNode* childs[2];
+	void* data;
 
-    btDbvntNode(const btDbvtNode* n)
-    : volume(n->volume)
-    , normal(0,0,0)
-    , angle(0)
-    , data(n->data)
-    {
-        childs[0] = 0;
-        childs[1] = 0;
-    }
-    
-    ~btDbvntNode()
-    {
-        if (childs[0])
-            delete childs[0];
-        if (childs[1])
-            delete childs[1];
-    }
+	btDbvntNode(const btDbvtNode* n)
+		: volume(n->volume), normal(0, 0, 0), angle(0), data(n->data)
+	{
+		childs[0] = 0;
+		childs[1] = 0;
+	}
+
+	~btDbvntNode()
+	{
+		if (childs[0])
+			delete childs[0];
+		if (childs[1])
+			delete childs[1];
+	}
 };
 
 typedef btAlignedObjectArray<const btDbvtNode*> btNodeStack;
@@ -255,14 +252,14 @@ struct btDbvt
 		btDbvtNode* parent;
 		sStkCLN(const btDbvtNode* n, btDbvtNode* p) : node(n), parent(p) {}
 	};
-    
-    struct sStknNN
-    {
-        const btDbvntNode* a;
-        const btDbvntNode* b;
-        sStknNN() {}
-        sStknNN(const btDbvntNode* na, const btDbvntNode* nb) : a(na), b(nb) {}
-    };
+
+	struct sStknNN
+	{
+		const btDbvntNode* a;
+		const btDbvntNode* b;
+		sStknNN() {}
+		sStknNN(const btDbvntNode* na, const btDbvntNode* nb) : a(na), b(nb) {}
+	};
 	// Policies/Interfaces
 
 	/* ICollide	*/
@@ -272,7 +269,7 @@ struct btDbvt
 		DBVT_VIRTUAL void Process(const btDbvtNode*, const btDbvtNode*) {}
 		DBVT_VIRTUAL void Process(const btDbvtNode*) {}
 		DBVT_VIRTUAL void Process(const btDbvtNode* n, btScalar) { Process(n); }
-        DBVT_VIRTUAL void Process(const btDbvntNode*, const btDbvntNode*) {}
+		DBVT_VIRTUAL void Process(const btDbvntNode*, const btDbvntNode*) {}
 		DBVT_VIRTUAL bool Descent(const btDbvtNode*) { return (true); }
 		DBVT_VIRTUAL bool AllLeaves(const btDbvtNode*) { return (true); }
 	};
@@ -345,12 +342,12 @@ struct btDbvt
 	void collideTT(const btDbvtNode* root0,
 				   const btDbvtNode* root1,
 				   DBVT_IPOLICY);
-    DBVT_PREFIX
-    void selfCollideT(const btDbvntNode* root,
-                   DBVT_IPOLICY);
-    DBVT_PREFIX
-    void selfCollideTT(const btDbvtNode* root,
-                      DBVT_IPOLICY);
+	DBVT_PREFIX
+	void selfCollideT(const btDbvntNode* root,
+					  DBVT_IPOLICY);
+	DBVT_PREFIX
+	void selfCollideTT(const btDbvtNode* root,
+					   DBVT_IPOLICY);
 
 	DBVT_PREFIX
 	void collideTTpersistentStack(const btDbvtNode* root0,
@@ -537,12 +534,20 @@ DBVT_INLINE void btDbvtAabbMm::SignedExpand(const btVector3& e)
 //
 DBVT_INLINE bool btDbvtAabbMm::Contain(const btDbvtAabbMm& a) const
 {
+#if DBVT_INT0_IMPL == DBVT_IMPL_SSE
+	const __m128 r = _mm_and_ps(_mm_cmple_ps(mi.mVec128, a.mi.mVec128),
+								_mm_cmpge_ps(mx.mVec128, a.mx.mVec128));
+
+	const int mask = _mm_movemask_ps(r);
+	return (mask & 7) == 7;  // Check if 3 lowest bits all set
+#else
 	return ((mi.x() <= a.mi.x()) &&
 			(mi.y() <= a.mi.y()) &&
 			(mi.z() <= a.mi.z()) &&
 			(mx.x() >= a.mx.x()) &&
 			(mx.y() >= a.mx.y()) &&
 			(mx.z() >= a.mx.z()));
+#endif
 }
 
 //
@@ -622,14 +627,12 @@ DBVT_INLINE bool Intersect(const btDbvtAabbMm& a,
 						   const btDbvtAabbMm& b)
 {
 #if DBVT_INT0_IMPL == DBVT_IMPL_SSE
-	const __m128 rt(_mm_or_ps(_mm_cmplt_ps(_mm_load_ps(b.mx), _mm_load_ps(a.mi)),
-							  _mm_cmplt_ps(_mm_load_ps(a.mx), _mm_load_ps(b.mi))));
-#if defined(_WIN32)
-	const __int32* pu((const __int32*)&rt);
-#else
-	const int* pu((const int*)&rt);
-#endif
-	return ((pu[0] | pu[1] | pu[2]) == 0);
+	const __m128 rt(_mm_or_ps(_mm_cmplt_ps(b.mx.mVec128, a.mi.mVec128),
+							  _mm_cmplt_ps(a.mx.mVec128, b.mi.mVec128)));
+
+	const int mask = _mm_movemask_ps(rt);
+	return (mask & 7) == 0;  // check if first 3 slots are all 0
+
 #else
 	return ((a.mi.x() <= b.mx.x()) &&
 			(a.mx.x() >= b.mi.x()) &&
@@ -684,55 +687,48 @@ DBVT_INLINE int Select(const btDbvtAabbMm& o,
 		int ints[4];
 	};
 
-	__m128 omi(_mm_load_ps(o.mi));
-	omi = _mm_add_ps(omi, _mm_load_ps(o.mx));
-	__m128 ami(_mm_load_ps(a.mi));
-	ami = _mm_add_ps(ami, _mm_load_ps(a.mx));
+	const __m128 mmask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
+	__m128 omi = _mm_add_ps(o.mi.mVec128, o.mx.mVec128);
+	__m128 ami = _mm_add_ps(a.mi.mVec128, a.mx.mVec128);
 	ami = _mm_sub_ps(ami, omi);
-	ami = _mm_and_ps(ami, _mm_load_ps((const float*)mask));
-	__m128 bmi(_mm_load_ps(b.mi));
-	bmi = _mm_add_ps(bmi, _mm_load_ps(b.mx));
+	ami = _mm_and_ps(ami, mmask);
+	__m128 bmi = _mm_add_ps(b.mi.mVec128, b.mx.mVec128);
 	bmi = _mm_sub_ps(bmi, omi);
-	bmi = _mm_and_ps(bmi, _mm_load_ps((const float*)mask));
-	__m128 t0(_mm_movehl_ps(ami, ami));
-	ami = _mm_add_ps(ami, t0);
-	ami = _mm_add_ss(ami, _mm_shuffle_ps(ami, ami, 1));
-	__m128 t1(_mm_movehl_ps(bmi, bmi));
-	bmi = _mm_add_ps(bmi, t1);
-	bmi = _mm_add_ss(bmi, _mm_shuffle_ps(bmi, bmi, 1));
-
-	btSSEUnion tmp;
-	tmp.ssereg = _mm_cmple_ss(bmi, ami);
-	return tmp.ints[0] & 1;
+	bmi = _mm_and_ps(bmi, mmask);
+	bmi = _mm_sub_ps(bmi, ami);
+	__m128 z = _mm_movehl_ps(bmi, bmi);
+	__m128 y = _mm_shuffle_ps(bmi, bmi, 1);
+	bmi = _mm_add_ss(y, _mm_add_ss(bmi, z));
+	return _mm_cvtss_f32(bmi) <= 0.f;
 
 #else
 	ATTRIBUTE_ALIGNED16(__int32 r[1]);
 	__asm
 	{
-		mov		eax,o
-			mov		ecx,a
-			mov		edx,b
+		mov		eax, o
+			mov		ecx, a
+			mov		edx, b
 			movaps	xmm0,[eax]
-		movaps	xmm5,mask
+		movaps	xmm5, mask
 			addps	xmm0,[eax+16]	
 		movaps	xmm1,[ecx]
 		movaps	xmm2,[edx]
 		addps	xmm1,[ecx+16]
 		addps	xmm2,[edx+16]
-		subps	xmm1,xmm0
-			subps	xmm2,xmm0
-			andps	xmm1,xmm5
-			andps	xmm2,xmm5
-			movhlps	xmm3,xmm1
-			movhlps	xmm4,xmm2
-			addps	xmm1,xmm3
-			addps	xmm2,xmm4
-			pshufd	xmm3,xmm1,1
-			pshufd	xmm4,xmm2,1
-			addss	xmm1,xmm3
-			addss	xmm2,xmm4
-			cmpless	xmm2,xmm1
-			movss	r,xmm2
+		subps	xmm1, xmm0
+			subps	xmm2, xmm0
+			andps	xmm1, xmm5
+			andps	xmm2, xmm5
+			movhlps	xmm3, xmm1
+			movhlps	xmm4, xmm2
+			addps	xmm1, xmm3
+			addps	xmm2, xmm4
+			pshufd	xmm3, xmm1,1
+			pshufd	xmm4, xmm2,1
+			addss	xmm1, xmm3
+			addss	xmm2, xmm4
+			cmpless	xmm2, xmm1
+			movss	r, xmm2
 	}
 	return (r[0] & 1);
 #endif
@@ -774,12 +770,22 @@ DBVT_INLINE void Merge(const btDbvtAabbMm& a,
 DBVT_INLINE bool NotEqual(const btDbvtAabbMm& a,
 						  const btDbvtAabbMm& b)
 {
+#if DBVT_MERGE_IMPL == DBVT_IMPL_SSE
+
+	const __m128 r = _mm_or_ps(_mm_cmpneq_ps(b.mi.mVec128, a.mi.mVec128),
+							   _mm_cmpneq_ps(b.mx.mVec128, a.mx.mVec128));
+
+	const int mask = _mm_movemask_ps(r);
+	return (mask & 7) != 0;
+
+#else
 	return ((a.mi.x() != b.mi.x()) ||
 			(a.mi.y() != b.mi.y()) ||
 			(a.mi.z() != b.mi.z()) ||
 			(a.mx.x() != b.mx.x()) ||
 			(a.mx.y() != b.mx.y()) ||
 			(a.mx.z() != b.mx.z()));
+#endif
 }
 
 //
@@ -885,131 +891,130 @@ inline void btDbvt::collideTT(const btDbvtNode* root0,
 //
 DBVT_PREFIX
 inline void btDbvt::selfCollideT(const btDbvntNode* root,
-                              DBVT_IPOLICY)
+								 DBVT_IPOLICY)
 {
-    DBVT_CHECKTYPE
-    if (root)
-    {
-        int depth = 1;
-        int treshold = DOUBLE_STACKSIZE - 4;
-        btAlignedObjectArray<sStknNN> stkStack;
-        stkStack.resize(DOUBLE_STACKSIZE);
-        stkStack[0] = sStknNN(root, root);
-        do
-        {
-            sStknNN p = stkStack[--depth];
-            if (depth > treshold)
-            {
-                stkStack.resize(stkStack.size() * 2);
-                treshold = stkStack.size() - 4;
-            }
-            if (p.a == p.b)
-            {
-                if (p.a->isinternal() && p.a->angle > SIMD_PI)
-                {
-                    stkStack[depth++] = sStknNN(p.a->childs[0], p.a->childs[0]);
-                    stkStack[depth++] = sStknNN(p.a->childs[1], p.a->childs[1]);
-                    stkStack[depth++] = sStknNN(p.a->childs[0], p.a->childs[1]);
-                }
-            }
-            else if (Intersect(p.a->volume, p.b->volume))
-            {
-                if (p.a->isinternal())
-                {
-                    if (p.b->isinternal())
-                    {
-                        stkStack[depth++] = sStknNN(p.a->childs[0], p.b->childs[0]);
-                        stkStack[depth++] = sStknNN(p.a->childs[1], p.b->childs[0]);
-                        stkStack[depth++] = sStknNN(p.a->childs[0], p.b->childs[1]);
-                        stkStack[depth++] = sStknNN(p.a->childs[1], p.b->childs[1]);
-                    }
-                    else
-                    {
-                        stkStack[depth++] = sStknNN(p.a->childs[0], p.b);
-                        stkStack[depth++] = sStknNN(p.a->childs[1], p.b);
-                    }
-                }
-                else
-                {
-                    if (p.b->isinternal())
-                    {
-                        stkStack[depth++] = sStknNN(p.a, p.b->childs[0]);
-                        stkStack[depth++] = sStknNN(p.a, p.b->childs[1]);
-                    }
-                    else
-                    {
-                        policy.Process(p.a, p.b);
-                    }
-                }
-            }
-        } while (depth);
-    }
+	DBVT_CHECKTYPE
+	if (root)
+	{
+		int depth = 1;
+		int treshold = DOUBLE_STACKSIZE - 4;
+		btAlignedObjectArray<sStknNN> stkStack;
+		stkStack.resize(DOUBLE_STACKSIZE);
+		stkStack[0] = sStknNN(root, root);
+		do
+		{
+			sStknNN p = stkStack[--depth];
+			if (depth > treshold)
+			{
+				stkStack.resize(stkStack.size() * 2);
+				treshold = stkStack.size() - 4;
+			}
+			if (p.a == p.b)
+			{
+				if (p.a->isinternal() && p.a->angle > SIMD_PI)
+				{
+					stkStack[depth++] = sStknNN(p.a->childs[0], p.a->childs[0]);
+					stkStack[depth++] = sStknNN(p.a->childs[1], p.a->childs[1]);
+					stkStack[depth++] = sStknNN(p.a->childs[0], p.a->childs[1]);
+				}
+			}
+			else if (Intersect(p.a->volume, p.b->volume))
+			{
+				if (p.a->isinternal())
+				{
+					if (p.b->isinternal())
+					{
+						stkStack[depth++] = sStknNN(p.a->childs[0], p.b->childs[0]);
+						stkStack[depth++] = sStknNN(p.a->childs[1], p.b->childs[0]);
+						stkStack[depth++] = sStknNN(p.a->childs[0], p.b->childs[1]);
+						stkStack[depth++] = sStknNN(p.a->childs[1], p.b->childs[1]);
+					}
+					else
+					{
+						stkStack[depth++] = sStknNN(p.a->childs[0], p.b);
+						stkStack[depth++] = sStknNN(p.a->childs[1], p.b);
+					}
+				}
+				else
+				{
+					if (p.b->isinternal())
+					{
+						stkStack[depth++] = sStknNN(p.a, p.b->childs[0]);
+						stkStack[depth++] = sStknNN(p.a, p.b->childs[1]);
+					}
+					else
+					{
+						policy.Process(p.a, p.b);
+					}
+				}
+			}
+		} while (depth);
+	}
 }
 
 //
 DBVT_PREFIX
 inline void btDbvt::selfCollideTT(const btDbvtNode* root,
-                                 DBVT_IPOLICY)
+								  DBVT_IPOLICY)
 {
-    DBVT_CHECKTYPE
-    if (root)
-    {
-        int depth = 1;
-        int treshold = DOUBLE_STACKSIZE - 4;
-        btAlignedObjectArray<sStkNN> stkStack;
-        stkStack.resize(DOUBLE_STACKSIZE);
-        stkStack[0] = sStkNN(root, root);
-        do
-        {
-            sStkNN p = stkStack[--depth];
-            if (depth > treshold)
-            {
-                stkStack.resize(stkStack.size() * 2);
-                treshold = stkStack.size() - 4;
-            }
-            if (p.a == p.b)
-            {
-                if (p.a->isinternal())
-                {
-                    stkStack[depth++] = sStkNN(p.a->childs[0], p.a->childs[0]);
-                    stkStack[depth++] = sStkNN(p.a->childs[1], p.a->childs[1]);
-                    stkStack[depth++] = sStkNN(p.a->childs[0], p.a->childs[1]);
-                }
-            }
-            else if (Intersect(p.a->volume, p.b->volume))
-            {
-                if (p.a->isinternal())
-                {
-                    if (p.b->isinternal())
-                    {
-                        stkStack[depth++] = sStkNN(p.a->childs[0], p.b->childs[0]);
-                        stkStack[depth++] = sStkNN(p.a->childs[1], p.b->childs[0]);
-                        stkStack[depth++] = sStkNN(p.a->childs[0], p.b->childs[1]);
-                        stkStack[depth++] = sStkNN(p.a->childs[1], p.b->childs[1]);
-                    }
-                    else
-                    {
-                        stkStack[depth++] = sStkNN(p.a->childs[0], p.b);
-                        stkStack[depth++] = sStkNN(p.a->childs[1], p.b);
-                    }
-                }
-                else
-                {
-                    if (p.b->isinternal())
-                    {
-                        stkStack[depth++] = sStkNN(p.a, p.b->childs[0]);
-                        stkStack[depth++] = sStkNN(p.a, p.b->childs[1]);
-                    }
-                    else
-                    {
-                        policy.Process(p.a, p.b);
-                    }
-                }
-            }
-        } while (depth);
-    }
+	DBVT_CHECKTYPE
+	if (root)
+	{
+		int depth = 1;
+		int treshold = DOUBLE_STACKSIZE - 4;
+		btAlignedObjectArray<sStkNN> stkStack;
+		stkStack.resize(DOUBLE_STACKSIZE);
+		stkStack[0] = sStkNN(root, root);
+		do
+		{
+			sStkNN p = stkStack[--depth];
+			if (depth > treshold)
+			{
+				stkStack.resize(stkStack.size() * 2);
+				treshold = stkStack.size() - 4;
+			}
+			if (p.a == p.b)
+			{
+				if (p.a->isinternal())
+				{
+					stkStack[depth++] = sStkNN(p.a->childs[0], p.a->childs[0]);
+					stkStack[depth++] = sStkNN(p.a->childs[1], p.a->childs[1]);
+					stkStack[depth++] = sStkNN(p.a->childs[0], p.a->childs[1]);
+				}
+			}
+			else if (Intersect(p.a->volume, p.b->volume))
+			{
+				if (p.a->isinternal())
+				{
+					if (p.b->isinternal())
+					{
+						stkStack[depth++] = sStkNN(p.a->childs[0], p.b->childs[0]);
+						stkStack[depth++] = sStkNN(p.a->childs[1], p.b->childs[0]);
+						stkStack[depth++] = sStkNN(p.a->childs[0], p.b->childs[1]);
+						stkStack[depth++] = sStkNN(p.a->childs[1], p.b->childs[1]);
+					}
+					else
+					{
+						stkStack[depth++] = sStkNN(p.a->childs[0], p.b);
+						stkStack[depth++] = sStkNN(p.a->childs[1], p.b);
+					}
+				}
+				else
+				{
+					if (p.b->isinternal())
+					{
+						stkStack[depth++] = sStkNN(p.a, p.b->childs[0]);
+						stkStack[depth++] = sStkNN(p.a, p.b->childs[1]);
+					}
+					else
+					{
+						policy.Process(p.a, p.b);
+					}
+				}
+			}
+		} while (depth);
+	}
 }
-
 
 DBVT_PREFIX
 inline void btDbvt::collideTTpersistentStack(const btDbvtNode* root0,
@@ -1090,10 +1095,10 @@ inline void		btDbvt::collideTT(	const btDbvtNode* root0,
 			int								treshold=DOUBLE_STACKSIZE-4;
 			btAlignedObjectArray<sStkNN>	stkStack;
 			stkStack.resize(DOUBLE_STACKSIZE);
-			stkStack[0]=sStkNN(root0,root1);
+			stkStack[0]=sStkNN(root0, root1);
 			do	{
 				sStkNN	p=stkStack[--depth];
-				if(Intersect(p.a->volume,p.b->volume,xform))
+				if(Intersect(p.a->volume, p.b->volume, xform))
 				{
 					if(depth>treshold)
 					{
@@ -1104,27 +1109,27 @@ inline void		btDbvt::collideTT(	const btDbvtNode* root0,
 					{
 						if(p.b->isinternal())
 						{					
-							stkStack[depth++]=sStkNN(p.a->childs[0],p.b->childs[0]);
-							stkStack[depth++]=sStkNN(p.a->childs[1],p.b->childs[0]);
-							stkStack[depth++]=sStkNN(p.a->childs[0],p.b->childs[1]);
-							stkStack[depth++]=sStkNN(p.a->childs[1],p.b->childs[1]);
+							stkStack[depth++]=sStkNN(p.a->childs[0], p.b->childs[0]);
+							stkStack[depth++]=sStkNN(p.a->childs[1], p.b->childs[0]);
+							stkStack[depth++]=sStkNN(p.a->childs[0], p.b->childs[1]);
+							stkStack[depth++]=sStkNN(p.a->childs[1], p.b->childs[1]);
 						}
 						else
 						{
-							stkStack[depth++]=sStkNN(p.a->childs[0],p.b);
-							stkStack[depth++]=sStkNN(p.a->childs[1],p.b);
+							stkStack[depth++]=sStkNN(p.a->childs[0], p.b);
+							stkStack[depth++]=sStkNN(p.a->childs[1], p.b);
 						}
 					}
 					else
 					{
 						if(p.b->isinternal())
 						{
-							stkStack[depth++]=sStkNN(p.a,p.b->childs[0]);
-							stkStack[depth++]=sStkNN(p.a,p.b->childs[1]);
+							stkStack[depth++]=sStkNN(p.a, p.b->childs[0]);
+							stkStack[depth++]=sStkNN(p.a, p.b->childs[1]);
 						}
 						else
 						{
-							policy.Process(p.a,p.b);
+							policy.Process(p.a, p.b);
 						}
 					}
 				}
@@ -1140,7 +1145,7 @@ inline void		btDbvt::collideTT(	const btDbvtNode* root0,
 								  DBVT_IPOLICY)
 {
 	const btTransform	xform=xform0.inverse()*xform1;
-	collideTT(root0,root1,xform,policy);
+	collideTT(root0, root1, xform, policy);
 }
 #endif
 
@@ -1282,7 +1287,8 @@ inline void btDbvt::rayTest(const btDbvtNode* root,
 	if (root)
 	{
 		btVector3 rayDir = (rayTo - rayFrom);
-		rayDir.normalize();
+		if (!btFuzzyZero(rayDir.length2()))
+			rayDir.normalize();
 
 		///what about division by zero? --> just set rayDirection[i] to INF/BT_LARGE_FLOAT
 		btVector3 rayDirectionInverse;

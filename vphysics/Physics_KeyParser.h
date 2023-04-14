@@ -7,6 +7,8 @@
 #include <vcollide_parse.h>
 #include <vphysics/vehicles.h>
 
+#define MAX_KEYVALUE	1024
+
 class KeyValues;
 
 class CPhysicsKeyParser : public IVPhysicsKeyParser
@@ -27,6 +29,10 @@ class CPhysicsKeyParser : public IVPhysicsKeyParser
 		void			ParseVehicle(vehicleparams_t *pVehicle, IVPhysicsKeyHandler *unknownKeyHandler);
 		void			SkipBlock() { NextBlock(); };
 
+        //lwss add
+        void		ParseCollisionRules( ragdollcollisionrules_t *pRules, IVPhysicsKeyHandler *unknownKeyHandler );
+        void		ParseRagdollAnimatedFriction( ragdollanimatedfriction_t *pFriction, IVPhysicsKeyHandler *unknownKeyHandler	);
+        //lwss end
 		// Unexposed functions
 	public:
 		void			ParseVehicleAxle(vehicle_axleparams_t &axle, KeyValues *kv);

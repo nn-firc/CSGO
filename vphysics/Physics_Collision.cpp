@@ -5,6 +5,7 @@
 
 #include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
 #include "LinearMath/btConvexHull.h"
+#include "LinearMath/btGeometryUtil.h"
 
 #include "Physics_Collision.h"
 #include "Physics_Object.h"
@@ -17,8 +18,8 @@
 
 #define COLLISION_MARGIN 0.015 // 15 mm
 
-// Use btConvexTriangleMeshShape instead of btConvexHullShape?
-#define USE_CONVEX_TRIANGLES
+// TODO: Use btConvexTriangleMeshShape instead of btConvexHullShape? btw we shouldn't use btConvexTriangleMeshShape, it's not performance friendly
+// #define USE_CONVEX_TRIANGLES
 
 // lol hack
 extern IVPhysicsDebugOverlay *g_pDebugOverlay;
@@ -213,7 +214,7 @@ class CPhysPolysoup {
 
 CPhysicsCollision::CPhysicsCollision() {
 	// Default to old behavior
-	EnableBBoxCache(true);
+	CPhysicsCollision::EnableBBoxCache(true);
 }
 
 CPhysicsCollision::~CPhysicsCollision() {
@@ -244,17 +245,17 @@ btConvexTriangleMeshShape *CreateTriMeshFromHull(HullResult &res) {
 	// Duplicate the output vertex array
 	mesh.m_numVertices = res.mNumOutputVertices;
 	btVector3 *pVerts = new btVector3[res.mNumOutputVertices];
-	for (int i = 0; i < res.mNumOutputVertices; i++) {
+	for (uint i = 0; i < res.mNumOutputVertices; i++) {
 		pVerts[i] = res.m_OutputVertices[i];
 	}
 
-	mesh.m_vertexBase = (unsigned char *)pVerts;
+	mesh.m_vertexBase = reinterpret_cast<unsigned char*>(pVerts);
 	mesh.m_vertexStride = sizeof(btVector3);
 	mesh.m_vertexType = PHY_FLOAT;
 
 	// Duplicate the index array
-	unsigned short *pIndices = new unsigned short[res.mNumIndices];
-	for (int i = 0; i < res.mNumIndices; i++) {
+	unsigned int *pIndices = new unsigned int[res.mNumIndices];
+	for (uint i = 0; i < res.mNumIndices; i++) {
 		pIndices[i] = res.m_Indices[i];
 	}
 
@@ -420,7 +421,7 @@ void CPhysicsCollision::ConvexFree(CPhysConvex *pConvex) {
 // TODO: Need this to get contents of a convex in a compound shape
 void CPhysicsCollision::SetConvexGameData(CPhysConvex *pConvex, unsigned int gameData) {
 	btConvexShape *pShape = (btConvexShape *)pConvex;
-	pShape->setUserPointer((void *)gameData);
+	pShape->setUserPointer((void *)(gameData));
 }
 
 // Appears to use a polyhedron class from mathlib
@@ -836,7 +837,7 @@ void CPhysicsCollision::ClearBBoxCache() {
 bool CPhysicsCollision::GetBBoxCacheSize(int *pCachedSize, int *pCachedCount) {
 	// pCachedSize is size in bytes
 	if (pCachedSize)
-		*pCachedSize = m_bboxCache.Size();
+		*pCachedSize = m_bboxCache.Count() * sizeof(bboxcache_t);
 
 	if (pCachedCount)
 		*pCachedCount = m_bboxCache.Count();
@@ -941,7 +942,7 @@ class CFilteredRayResultCallback : public btCollisionWorld::ClosestRayResultCall
 			if (m_pConvexInfo && rayResult.m_localShapeInfo && rayResult.m_localShapeInfo->m_triangleIndex >= 0) {
 				btCollisionShape *pShape = ((btCompoundShape *)m_pShape)->getChildShape(rayResult.m_localShapeInfo->m_triangleIndex);
 				if (pShape) {
-					int contents = m_pConvexInfo->GetContents(pShape->getUserData());
+					int contents = m_pConvexInfo->GetContents(pShape->getUserIndex());
 
 					// If none of the contents are within the mask, abort!
 					if (!(contents & m_contentsMask)) {
@@ -973,7 +974,7 @@ class CFilteredConvexResultCallback : public btCollisionWorld::ClosestConvexResu
 			if (m_pConvexInfo && convexResult.m_localShapeInfo && convexResult.m_localShapeInfo->m_triangleIndex >= 0) {
 				btCollisionShape *pShape = ((btCompoundShape *)m_pShape)->getChildShape(convexResult.m_localShapeInfo->m_triangleIndex);
 				if (pShape) {
-					int contents = m_pConvexInfo->GetContents(pShape->getUserData());
+					int contents = m_pConvexInfo->GetContents(pShape->getUserIndex());
 
 					// If none of the contents are within the mask, abort!
 					if (!(contents & m_contentsMask)) {
@@ -991,7 +992,7 @@ class CFilteredConvexResultCallback : public btCollisionWorld::ClosestConvexResu
 		btCollisionShape *m_pShape;
 };
 
-static ConVar vphysics_visualizetraces("vphysics_visualizetraces", "0", FCVAR_CHEAT, "Visualize physics traces");
+static ConVar bt_visualizetraces("bt_visualizetraces", "0", FCVAR_CHEAT, "Visualize physics traces");
 
 void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IConvexInfo *pConvexInfo, const CPhysCollide *pCollide, const Vector &collideOrigin, const QAngle &collideAngles, trace_t *ptr) {
 	if (!pCollide || !ptr) return;
@@ -1057,7 +1058,7 @@ void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IC
 			ptr->endpos = ptr->startpos + ray.m_Delta;
 		}
 
-		if (vphysics_visualizetraces.GetBool() && g_pDebugOverlay) {
+		if (bt_visualizetraces.GetBool() && g_pDebugOverlay) {
 			g_pDebugOverlay->AddLineOverlay(ptr->startpos, ptr->endpos, 0, 0, 255, false, 0.f);
 
 			if (ptr->fraction < 1.f) {
@@ -1070,7 +1071,7 @@ void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IC
 			}
 		}
 	} else if (ray.m_IsSwept) { // Box trace!
-		if (vphysics_visualizetraces.GetBool() && g_pDebugOverlay) {
+		if (bt_visualizetraces.GetBool() && g_pDebugOverlay) {
 			// Trace start box (red)
 			g_pDebugOverlay->AddBoxOverlay(ray.m_Start, -ray.m_Extents, ray.m_Extents, QAngle(0, 0, 0), 255, 0, 0, 10, 0.0f);
 
@@ -1096,7 +1097,10 @@ void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IC
 
 				ptr->startsolid = false;
 				ptr->allsolid = false;
-			} else if (cb.m_closestHitFraction == 0.f && cb.m_penetrationDist >= -0.01f) {
+			//} else if (cb.m_closestHitFraction == 0.f && cb.m_penetrationDist >= -0.01f) {
+			//lwss: This threshold was too low for kisak-strike. Kept getting stuck on things.
+			} else if (cb.m_closestHitFraction == 0.f && cb.m_penetrationDist >= -0.05f) {
+            //lwss end
 				ConvertDirectionToHL(cb.m_hitNormalWorld, ptr->plane.normal);
 
 				// HACK:
@@ -1130,7 +1134,7 @@ void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IC
 			}
 
 			// Debug trace visualizing
-			if (vphysics_visualizetraces.GetBool() && g_pDebugOverlay) {
+			if (bt_visualizetraces.GetBool() && g_pDebugOverlay) {
 				if (!ptr->allsolid) {
 					btVector3 lineEnd = cb.m_hitPointWorld + (cb.m_hitNormalWorld * 1);
 					Vector hlEnd, hlStart;
@@ -1144,7 +1148,7 @@ void CPhysicsCollision::TraceBox(const Ray_t &ray, unsigned int contentsMask, IC
 
 		ptr->endpos = ptr->startpos + (ray.m_Delta * ptr->fraction);
 
-		if (vphysics_visualizetraces.GetBool() && g_pDebugOverlay) {
+		if (bt_visualizetraces.GetBool() && g_pDebugOverlay) {
 			if (ptr->startsolid) {
 				g_pDebugOverlay->AddTextOverlay(ptr->endpos, 0, 0.f, "Trace started in solid!");
 			}
@@ -1223,6 +1227,10 @@ bool CPhysicsCollision::IsBoxIntersectingCone(const Vector &boxAbsMins, const Ve
 	return false;
 }
 
+static int CompareFunc (const uint16 * a, const uint16 * b) {
+   return ( *a - *b );
+}
+
 static btConvexShape *LedgeToConvex(const ivpcompactledge_t *ledge) {
 	btConvexShape *pConvexOut = NULL;
 
@@ -1284,8 +1292,9 @@ static btConvexShape *LedgeToConvex(const ivpcompactledge_t *ledge) {
 
 		pConvexOut = pShape;
 #else
-		btConvexHullShape *pConvex = new btConvexHullShape;
-		pConvex->setMargin(COLLISION_MARGIN);
+        btAlignedObjectArray<btVector3> vertexes;
+        btConvexHullShape *pConvex = new btConvexHullShape;
+		pConvex->setMargin(CONVEX_DISTANCE_MARGIN);
 
 		const ivpcompacttriangle_t *tris = (ivpcompacttriangle_t *)(ledge + 1);
 
@@ -1294,33 +1303,62 @@ static btConvexShape *LedgeToConvex(const ivpcompactledge_t *ledge) {
 		// If you find a better way you can replace this!
 		CUtlVector<uint16> indices;
 
-		for (int j = 0; j < ledge->n_triangles; j++) {
+		for (int j = 0; j < ledge->n_triangles; j++) 
+		{
 			Assert((uint)j == tris[j].tri_index); // Sanity check
-
-			for (int k = 0; k < 3; k++) {
-				uint16 index = tris[j].c_three_edges[k].start_point_index;
-
-				if (indices.Find(index) == -1) {
-					indices.AddToTail(index);
-				}
+			for (int k = 0; k < 3; k++) 
+			{
+				indices.AddToTail(tris[j].c_three_edges[k].start_point_index);
 			}
 		}
 
-		for (int j = 0; j < indices.Count(); j++) {
-			uint16 index = indices[j];
+		indices.Sort(CompareFunc);
 
+		for (int j = 0; j < indices.Count(); j++) 
+		{
+			if(j + 1 != indices.Count() && indices[j] == indices[j+1])
+			{
+				continue;
+			}
+			
+			uint16 index = indices[j];
 			float *ivpvert = (float *)(vertices + index * 16); // 16 is sizeof(ivp aligned vector)
 
 			btVector3 vertex;
 			ConvertIVPPosToBull(ivpvert, vertex);
-			pConvex->addPoint(vertex);
+			vertexes.push_back( vertex );
 		}
+
+		// If an object is smaller than the margin, it will obviously float.
+		// Here we will check if the shape is too small for our default margin
+		// There is a way to shrink the hull according the margin, but I don't think it's needed.
+		// https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=2358
+        btAlignedObjectArray<btVector3> planes;
+        btGeometryUtil::getPlaneEquationsFromVertices(vertexes, planes);
+        int sz = planes.size();
+        for (int i=0 ; i<sz ; ++i) {
+            if( planes[i][3] += pConvex->getMargin() >= 0 )
+            {
+                // object is too small for our desired Margin. Instead, we will give it a small one.
+                pConvex->setMargin( 0.005f );
+                break;
+            }
+        }
+
+        // add the vertexes to the convex hull shape
+        sz = vertexes.size();
+        for (int i=0 ; i<sz ; ++i) {
+            pConvex->addPoint(vertexes[i]);
+        }
+
+		// Optimize the convex hull
+		pConvex->optimizeConvexHull();
 
 		pConvexOut = pConvex;
 #endif
 
 		// Transfer over the ledge's user data (data from Source)
-		pConvexOut->setUserData(ledge->client_data);
+		pConvexOut->setUserIndex(ledge->client_data);
 	}
 
 	return pConvexOut;
@@ -1467,7 +1505,7 @@ void CPhysicsCollision::VCollideLoad(vcollide_t *pOutput, int solidCount, const 
 	memcpy(pOutput->pKeyValues, pBuffer + position, bufferSize - position);
 
 	// swap argument means byte swap - we must byte swap all of the collision shapes before loading them if true!
-	DevMsg("VPhysics: VCollideLoad with %d solids, swap is %s\n", solidCount, swap ? "true" : "false");
+	// DevMsg("VPhysics: VCollideLoad with %d solids, swap is %s\n", solidCount, swap ? "true" : "false");
 
 	// Now for the fun part:
 	// We must convert all of the ivp shapes into something we can use.
@@ -1477,7 +1515,7 @@ void CPhysicsCollision::VCollideLoad(vcollide_t *pOutput, int solidCount, const 
 		if (surfaceheader.vphysicsID	!= VPHYSICS_ID
 		 || surfaceheader.version		!= 0x100) {
 			pOutput->solids[i] = NULL;
-			Warning("VCollideLoad: Skipped solid %d due to invalid id/version (magic: %.4s version: %d)", i+1, surfaceheader.vphysicsID, surfaceheader.version);
+			Warning("VCollideLoad: Skipped solid %d due to invalid id/version (magic: %d version: %d)", i+1, surfaceheader.vphysicsID, surfaceheader.version);
 			continue;
 		}
 
@@ -1515,6 +1553,12 @@ void CPhysicsCollision::VCollideUnload(vcollide_t *pVCollide) {
 IVPhysicsKeyParser *CPhysicsCollision::VPhysicsKeyParserCreate(const char *pKeyData) {
 	return new CPhysicsKeyParser(pKeyData);
 }
+//lwss - added this
+IVPhysicsKeyParser *CPhysicsCollision::VPhysicsKeyParserCreate(vcollide_t *pVCollide)
+{
+    return new CPhysicsKeyParser( pVCollide->pKeyValues );
+}
+//lwss end
 
 void CPhysicsCollision::VPhysicsKeyParserDestroy(IVPhysicsKeyParser *pParser) {
 	delete (CPhysicsKeyParser *)pParser;
@@ -1590,6 +1634,53 @@ IPhysicsCollision *CPhysicsCollision::ThreadContextCreate() {
 void CPhysicsCollision::ThreadContextDestroy(IPhysicsCollision *pThreadContext) {
 	delete pThreadContext;
 }
+
+// lwss - Recreated these functions
+float CPhysicsCollision::CollideGetRadius(const CPhysCollide *pCollide)
+{
+    const btCollisionShape *shape = pCollide->GetCollisionShape();
+    if (shape->getShapeType() != SPHERE_SHAPE_PROXYTYPE)
+        return 0.0f;
+    btSphereShape *sphere = (btSphereShape *)shape;
+    return ConvertDistanceToHL( sphere->getRadius() );
+}
+void* CPhysicsCollision::VCollideAllocUserData(vcollide_t *pVCollide, size_t userDataSize)
+{
+    void *ret = nullptr;
+
+    if( pVCollide->pUserData )
+    {
+        g_pMemAlloc->Free( pVCollide->pUserData );
+        pVCollide->pUserData = nullptr;
+    }
+
+    if( userDataSize )
+    {
+        ret = g_pMemAlloc->Alloc( userDataSize );
+        pVCollide->pUserData = ret;
+    }
+    return ret;
+}
+
+void CPhysicsCollision::VCollideFreeUserData(vcollide_t *pVCollide)
+{
+    if( pVCollide->pUserData )
+    {
+        g_pMemAlloc->Free( pVCollide->pUserData );
+        pVCollide->pUserData = nullptr;
+    }
+}
+void CPhysicsCollision::VCollideCheck( vcollide_t *pVCollide, const char *pName )
+{
+    Warning("LWSS did not implement CPhysicsCollision::VCollideCheck()!\n");
+}
+bool CPhysicsCollision::TraceBoxAA( const Ray_t &ray, const CPhysCollide *pCollide, trace_t *ptr )
+{
+    Warning( "LWSS did not implement CPhysicsCollision::TraceBoxAA - it's only used in Portal!\n" );
+    return false;
+}
+
+// lwss end
 
 // BUG: Weird collisions with these, sometimes phys objs fall through the displacement mesh
 // Might be a bullet issue

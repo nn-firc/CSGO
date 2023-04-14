@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -52,7 +52,7 @@ btSolverConstraint
 	btScalar m_upperLimit;
 	btScalar m_rhsPenetration;
 	union {
-		void* m_originalContactPoint;
+		void* m_originalContactPoint;  // Either a btTypedConstraint or btManifoldPoint
 		btScalar m_unusedPadding4;
 		int m_numRowsForNonContactConstraint;
 	};

@@ -120,12 +120,12 @@ public:
 
 	btDiscreteDynamicsWorldMt(btDispatcher * dispatcher,
 							  btBroadphaseInterface * pairCache,
-							  btConstraintSolverPoolMt * solverPool,        // Note this should be a solver-pool for multi-threading
-							  btConstraintSolver * constraintSolverMt,      // single multi-threaded solver for large islands (or NULL)
+							  btConstraintSolverPoolMt * solverPool,    // Note this should be a solver-pool for multi-threading
+							  btConstraintSolver * constraintSolverMt,  // single multi-threaded solver for large islands (or NULL)
 							  btCollisionConfiguration * collisionConfiguration);
 	virtual ~btDiscreteDynamicsWorldMt();
 
-	virtual int stepSimulation(btScalar timeStep, int maxSubSteps, btScalar fixedTimeStep) BT_OVERRIDE;
+	virtual int stepSimulation(btScalar timeStep, int maxSubSteps, btScalar fixedTimeStep, int fixedSubSteps) BT_OVERRIDE;
 };
 
 #endif  //BT_DISCRETE_DYNAMICS_WORLD_H

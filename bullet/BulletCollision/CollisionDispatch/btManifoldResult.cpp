@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -17,6 +17,8 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+
+#include "BulletCollision/CollisionShapes/btCollisionShape.h"
 
 ///This is to allow MaterialCombiner/Custom Friction/Restitution values
 ContactAddedCallback gContactAddedCallback = 0;
@@ -90,11 +92,13 @@ btManifoldResult::btManifoldResult(const btCollisionObjectWrapper* body0Wrap, co
 	: m_manifoldPtr(0),
 	  m_body0Wrap(body0Wrap),
 	  m_body1Wrap(body1Wrap)
+#ifdef DEBUG_PART_INDEX
 	  ,
 	  m_partId0(-1),
 	  m_partId1(-1),
 	  m_index0(-1),
 	  m_index1(-1)
+#endif  //DEBUG_PART_INDEX
 	  ,
 	  m_closestPointDistanceThreshold(0)
 {
@@ -105,8 +109,8 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld, const 
 	btAssert(m_manifoldPtr);
 	//order in manifold needs to match
 
+	//	if (depth > m_manifoldPtr->getContactProcessingThreshold())
 	if (depth > m_manifoldPtr->getContactBreakingThreshold())
-		//	if (depth > m_manifoldPtr->getContactProcessingThreshold())
 		return;
 
 	bool isSwapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
@@ -170,7 +174,8 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld, const 
 		newPt.m_index0 = m_index0;
 		newPt.m_index1 = m_index1;
 	}
-	//printf("depth=%f\n",depth);
+
+	//printf("depth=%f\n", depth);
 	///@todo, check this for any side effects
 	if (insertIndex >= 0)
 	{
@@ -183,6 +188,7 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld, const 
 	}
 
 	//User can override friction and/or restitution
+	// TODO: This if block was disabled because of previous obsolte thread implementation.
 	if (gContactAddedCallback &&
 		//and if either of the two bodies requires custom material
 		((m_body0Wrap->getCollisionObject()->getCollisionFlags() & btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK) ||

@@ -71,7 +71,8 @@ public:
 	}
 
 protected:
-	int findLexicographicMinimum(const btMatrixXu& A, const int& pivotColIndex, const int& z0Row, bool& isRayTermination);
+	int findLexicographicMinimum(const btMatrixXu& A, const int& pivotColIndex);
+	bool LexicographicPositive(const btVectorXu& v);
 	void GaussJordanEliminationStep(btMatrixXu& A, int pivotRowIndex, int pivotColumnIndex, const btAlignedObjectArray<int>& basis);
 	bool greaterZero(const btVectorXu& vector);
 	bool validBasis(const btAlignedObjectArray<int>& basis);

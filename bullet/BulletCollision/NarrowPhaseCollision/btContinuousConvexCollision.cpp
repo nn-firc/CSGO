@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,6 +12,8 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
+#define BT_USE_SSE_IN_API
 
 #include "btContinuousConvexCollision.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
@@ -65,7 +67,7 @@ void btContinuousConvexCollision::computeClosestPoints(const btTransform& transA
 		const btVector3& planeNormal = planeShape->getPlaneNormal();
 		const btScalar& planeConstant = planeShape->getPlaneConstant();
 
-		btTransform convexWorldTransform = transA;
+		const btTransform& convexWorldTransform = transA;
 		btTransform convexInPlaneTrans;
 		convexInPlaneTrans = transB.inverse() * convexWorldTransform;
 		btTransform planeInConvex;
@@ -107,8 +109,30 @@ bool btContinuousConvexCollision::calcTimeOfImpact(
 
 	btScalar relLinVelocLength = (linVelB - linVelA).length();
 
+	// TODO: This part is added for allowing box traces with 0 length
 	if ((relLinVelocLength + maxAngularProjectedVelocity) == 0.f)
-		return false;
+	{
+		// Check for collision
+		btPointCollector collector;
+		computeClosestPoints(fromA, fromB, collector);
+		if (!collector.m_hasResult)
+			return false;
+
+		btScalar dist = collector.m_distance + result.m_allowedPenetration;
+		if (dist < 0.001f)
+		{
+			result.m_fraction = 0.f;
+			result.m_normal = collector.m_normalOnBInWorld;
+			result.m_hitPoint = collector.m_pointInWorld;
+			result.m_penetrationDist = dist - result.m_allowedPenetration;
+		}
+		else
+		{
+			result.m_fraction = 1.f;
+		}
+
+		return true;
+	}
 
 	btScalar lambda = btScalar(0.);
 
@@ -215,6 +239,8 @@ bool btContinuousConvexCollision::calcTimeOfImpact(
 		result.m_fraction = lambda;
 		result.m_normal = n;
 		result.m_hitPoint = c;
+		// TODO: Required for fixing player / static object collisions (2f47f45e1c01638979d4a20c6f3cdcf445251176)
+		result.m_penetrationDist = dist - result.m_allowedPenetration;
 		return true;
 	}
 

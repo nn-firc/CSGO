@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -69,11 +69,11 @@ public:
 			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btConvexPlaneCollisionAlgorithm));
 			if (!m_swapped)
 			{
-				return new (mem) btConvexPlaneCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false, m_numPerturbationIterations, m_minimumPointsPerturbationThreshold);
+				return new (mem) btConvexPlaneCollisionAlgorithm(ci.m_manifold, ci, body0Wrap, body1Wrap, false, m_numPerturbationIterations, m_minimumPointsPerturbationThreshold);
 			}
 			else
 			{
-				return new (mem) btConvexPlaneCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true, m_numPerturbationIterations, m_minimumPointsPerturbationThreshold);
+				return new (mem) btConvexPlaneCollisionAlgorithm(ci.m_manifold, ci, body0Wrap, body1Wrap, true, m_numPerturbationIterations, m_minimumPointsPerturbationThreshold);
 			}
 		}
 	};

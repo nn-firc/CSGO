@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -34,7 +34,7 @@ btConvexPlaneCollisionAlgorithm::btConvexPlaneCollisionAlgorithm(btPersistentMan
 	const btCollisionObjectWrapper* convexObjWrap = m_isSwapped ? col1Wrap : col0Wrap;
 	const btCollisionObjectWrapper* planeObjWrap = m_isSwapped ? col0Wrap : col1Wrap;
 
-	if (!m_manifoldPtr && m_dispatcher->needsCollision(convexObjWrap->getCollisionObject(), planeObjWrap->getCollisionObject()))
+	if (!m_manifoldPtr)
 	{
 		m_manifoldPtr = m_dispatcher->getNewManifold(convexObjWrap->getCollisionObject(), planeObjWrap->getCollisionObject());
 		m_ownManifold = true;
@@ -116,7 +116,7 @@ void btConvexPlaneCollisionAlgorithm::processCollision(const btCollisionObjectWr
 	btVector3 vtxInPlaneProjected = vtxInPlane - distance * planeNormal;
 	btVector3 vtxInPlaneWorld = planeObjWrap->getWorldTransform() * vtxInPlaneProjected;
 
-	hasCollision = distance < m_manifoldPtr->getContactBreakingThreshold()+ resultOut->m_closestPointDistanceThreshold;
+	hasCollision = distance < m_manifoldPtr->getContactBreakingThreshold() + resultOut->m_closestPointDistanceThreshold;
 	resultOut->setPersistentManifold(m_manifoldPtr);
 	if (hasCollision)
 	{

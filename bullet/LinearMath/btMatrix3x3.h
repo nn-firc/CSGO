@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -21,17 +21,10 @@ subject to the following restrictions:
 
 #ifdef BT_USE_SSE
 //const __m128 ATTRIBUTE_ALIGNED16(v2220) = {2.0f, 2.0f, 2.0f, 0.0f};
-//const __m128 ATTRIBUTE_ALIGNED16(vMPPP) = {-0.0f, +0.0f, +0.0f, +0.0f};
-#define vMPPP (_mm_set_ps(+0.0f, +0.0f, +0.0f, -0.0f))
+const __m128 ATTRIBUTE_ALIGNED16(vMPPP) = {-0.0f, +0.0f, +0.0f, +0.0f};
 #endif
 
-#if defined(BT_USE_SSE)
-#define v0000 (_mm_set_ps(0.0f, 0.0f, 0.0f, 0.0f))
-#define v1000 (_mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f))
-#define v0100 (_mm_set_ps(0.0f, 0.0f, 1.0f, 0.0f))
-#define v0010 (_mm_set_ps(0.0f, 1.0f, 0.0f, 0.0f))
-#elif defined(BT_USE_NEON)
-const btSimdFloat4 ATTRIBUTE_ALIGNED16(v0000) = {0.0f, 0.0f, 0.0f, 0.0f};
+#if defined(BT_USE_SSE) || defined(BT_USE_NEON)
 const btSimdFloat4 ATTRIBUTE_ALIGNED16(v1000) = {1.0f, 0.0f, 0.0f, 0.0f};
 const btSimdFloat4 ATTRIBUTE_ALIGNED16(v0100) = {0.0f, 1.0f, 0.0f, 0.0f};
 const btSimdFloat4 ATTRIBUTE_ALIGNED16(v0010) = {0.0f, 0.0f, 1.0f, 0.0f};
@@ -119,6 +112,13 @@ public:
 		m_el[2] = other.m_el[2];
 	}
 
+	SIMD_FORCE_INLINE btMatrix3x3(const btVector3& v0, const btVector3& v1, const btVector3& v2)
+	{
+		m_el[0] = v0;
+		m_el[1] = v1;
+		m_el[2] = v2;
+	}
+
 	/** @brief Assignment Operator */
 	SIMD_FORCE_INLINE btMatrix3x3& operator=(const btMatrix3x3& other)
 	{
@@ -127,13 +127,6 @@ public:
 		m_el[2] = other.m_el[2];
 		return *this;
 	}
-    
-    SIMD_FORCE_INLINE btMatrix3x3(const btVector3& v0, const btVector3& v1, const btVector3& v2)
-    {
-        m_el[0] = v0;
-        m_el[1] = v1;
-        m_el[2] = v2;
-    }
 
 #endif
 
@@ -142,6 +135,18 @@ public:
 	SIMD_FORCE_INLINE btVector3 getColumn(int i) const
 	{
 		return btVector3(m_el[0][i], m_el[1][i], m_el[2][i]);
+	}
+
+	/**
+	* @brief Set a column of the matrix with a vector
+	* @param i Column number
+	* @param vec Input data
+	*/
+	SIMD_FORCE_INLINE void setColumn(int i, const btVector3& vec)
+	{
+		m_el[0][i] = vec[0];
+		m_el[1][i] = vec[1];
+		m_el[2][i] = vec[2];
 	}
 
 	/** @brief Get a row of the matrix as a vector 
@@ -248,7 +253,7 @@ public:
 		Y = btCastiTo128f(_mm_shuffle_epi32(NQi, BT_SHUFFLE(3, 2, 0, 3)));  // -W -Z -X -W
 		Z = btCastiTo128f(_mm_shuffle_epi32(Qi, BT_SHUFFLE(1, 0, 1, 3)));   //  Y  X  Y  W
 
-		vs = _mm_load_ss(&s);
+		vs = _mm_set_ss(s);
 		V21 = V21 * Y;
 		V31 = V31 * Z;
 
@@ -332,20 +337,6 @@ public:
 				 btScalar(0.0), btScalar(0.0), btScalar(1.0));
 #endif
 	}
-    
-    /**@brief Set the matrix to the identity */
-    void setZero()
-    {
-#if (defined(BT_USE_SSE_IN_API) && defined(BT_USE_SSE)) || defined(BT_USE_NEON)
-        m_el[0] = v0000;
-        m_el[1] = v0000;
-        m_el[2] = v0000;
-#else
-        setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0),
-                 btScalar(0.0), btScalar(0.0), btScalar(0.0),
-                 btScalar(0.0), btScalar(0.0), btScalar(0.0));
-#endif
-    }
 
 	static const btMatrix3x3& getIdentity()
 	{
@@ -378,9 +369,9 @@ public:
 		vT = _mm_unpackhi_ps(v0, v1);  //	z0 z1 * *
 		v0 = _mm_unpacklo_ps(v0, v1);  //	x0 x1 y0 y1
 
-		v1 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(2, 3, 1, 3));                    // y0 y1 y2 0
-		v0 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(0, 1, 0, 3));                    // x0 x1 x2 0
-		v2 = btCastdTo128f(_mm_move_sd(btCastfTo128d(v2), btCastfTo128d(vT)));  // z0 z1 z2 0
+		v1 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(2, 3, 1, 3));  // y0 y1 y2 0
+		v0 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(0, 1, 0, 3));  // x0 x1 x2 0
+		v2 = _mm_shuffle_ps(vT, v2, BT_SHUFFLE(0, 1, 2, 3));  // z0 z1 z2 0
 
 		vm[0] = v0;
 		vm[1] = v1;
@@ -1059,9 +1050,9 @@ btMatrix3x3::transpose() const
 	vT = _mm_unpackhi_ps(v0, v1);  //	z0 z1 * *
 	v0 = _mm_unpacklo_ps(v0, v1);  //	x0 x1 y0 y1
 
-	v1 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(2, 3, 1, 3));                    // y0 y1 y2 0
-	v0 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(0, 1, 0, 3));                    // x0 x1 x2 0
-	v2 = btCastdTo128f(_mm_move_sd(btCastfTo128d(v2), btCastfTo128d(vT)));  // z0 z1 z2 0
+	v1 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(2, 3, 1, 3));  // y0 y1 y2 0
+	v0 = _mm_shuffle_ps(v0, v2, BT_SHUFFLE(0, 1, 0, 3));  // x0 x1 x2 0
+	v2 = _mm_shuffle_ps(vT, v2, BT_SHUFFLE(0, 1, 2, 3));  // z0 z1 z2 0
 
 	return btMatrix3x3(v0, v1, v2);
 #elif defined(BT_USE_NEON)

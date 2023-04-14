@@ -5,7 +5,7 @@
 #endif
 
 #include <vphysics/vehicles.h>
-#include "vphysics/vehiclesV32.h"
+#include "vphysics_bullet/vehiclesV32.h"
 
 class IPhysicsObject;
 class CPhysicsObject;

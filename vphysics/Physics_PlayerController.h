@@ -21,6 +21,13 @@ class CPlayerController : public IController, public IPhysicsPlayerController, p
 		CPlayerController(CPhysicsEnvironment *pEnv, CPhysicsObject *pObject);
 		~CPlayerController();
 
+        //lwss add missing func
+        // returns bitfield e.g. 0 (no contacts), 1 (has physics contact), 2 (contact matching nGameFlags), 3 (both 1 & 2)
+        virtual uint32 GetContactState( uint16 nGameFlags )
+        {
+            return 0;
+        }
+        //lwss end
 		void							Update(const Vector &position, const Vector &velocity, float secondsToArrival, bool onground, IPhysicsObject *ground);
 		void							SetEventHandler(IPhysicsPlayerControllerEvent *handler);
 		bool							IsInContact();

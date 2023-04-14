@@ -1,10 +1,12 @@
+#if 0
+
 #ifndef PHYSICS_SOFTBODY_H
 #define PHYSICS_SOFTBODY_H
 #if defined(_MSC_VER) || (defined(__GNUC__) && __GNUC__ > 3)
 	#pragma once
 #endif
 
-#include "vphysics/softbodyV32.h"
+#include "vphysics_bullet/softbodyV32.h"
 
 // Purpose: Dynamically deforming meshes (blankets, dents in objects, etc.)
 
@@ -71,3 +73,4 @@ CPhysicsSoftBody *CreateSoftBodyRope(CPhysicsEnvironment *pEnv, const Vector &po
 CPhysicsSoftBody *CreateSoftBodyPatch(CPhysicsEnvironment *pEnv, const Vector *corners, int resx, int resy, const softbodyparams_t *pParams);
 
 #endif // PHYSICS_SOFTBODY_H
+#endif

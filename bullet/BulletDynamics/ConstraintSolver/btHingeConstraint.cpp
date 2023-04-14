@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -764,10 +764,10 @@ void btHingeConstraint::getInfo2InternalUsingFrameOffset(btConstraintInfo2* info
 	btVector3 ax1A = trA.getBasis().getColumn(2);
 	btVector3 ax1B = trB.getBasis().getColumn(2);
 	btVector3 ax1 = ax1A * factA + ax1B * factB;
-	if (ax1.length2()<SIMD_EPSILON)
+	if (ax1.length2() < SIMD_EPSILON)
 	{
-		factA=0.f;
-		factB=1.f;
+		factA = 0.f;
+		factB = 1.f;
 		ax1 = ax1A * factA + ax1B * factB;
 	}
 	ax1.normalize();
@@ -879,7 +879,7 @@ void btHingeConstraint::getInfo2InternalUsingFrameOffset(btConstraintInfo2* info
 	info->m_J2angularAxis[s4 + 2] = -q[2];
 	// compute the right hand side of the constraint equation. set relative
 	// body velocities along p and q to bring the hinge back into alignment.
-	// if ax1A,ax1B are the unit length hinge axes as computed from bodyA and
+	// if ax1A, ax1B are the unit length hinge axes as computed from bodyA and
 	// bodyB, we need to rotate both bodies along the axis u = (ax1 x ax2).
 	// if "theta" is the angle between ax1 and ax2, we need an angular velocity
 	// along u to cover angle erp*theta in one step :

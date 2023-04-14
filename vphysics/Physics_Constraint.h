@@ -5,7 +5,7 @@
 #endif
 
 #include <vphysics/constraints.h>
-#include "vphysics/constraintsV32.h"
+#include "vphysics_bullet/constraintsV32.h"
 
 #include "Physics_Object.h"
 

@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -193,7 +193,7 @@ btBroadphasePair* btHashedOverlappingPairCache::internalAddPair(btBroadphaseProx
 		if(	(m_overlappingPairArray[i].m_pProxy0==proxy0)&&
 			(m_overlappingPairArray[i].m_pProxy1==proxy1))
 			{
-			printf("Adding duplicated %u<>%u\r\n",proxyId1,proxyId2);
+			printf("Adding duplicated %u<>%u\r\n", proxyId1, proxyId2);
 			internalFindPair(proxy0, proxy1, hash);
 			}
 		}*/

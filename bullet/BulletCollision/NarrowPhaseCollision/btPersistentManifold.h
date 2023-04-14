@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -34,6 +34,7 @@ class btPersistentManifold;
 
 typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
 typedef bool (*ContactProcessedCallback)(btManifoldPoint& cp, void* body0, void* body1);
+// TODO: Can we use those for contact/friction callbacks, instead of incoming one from old repository?
 typedef void (*ContactStartedCallback)(btPersistentManifold* const& manifold);
 typedef void (*ContactEndedCallback)(btPersistentManifold* const& manifold);
 extern ContactDestroyedCallback gContactDestroyedCallback;

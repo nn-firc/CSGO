@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -20,6 +20,7 @@ subject to the following restrictions:
 
 ///MinkowskiPenetrationDepthSolver implements bruteforce penetration depth estimation.
 ///Implementation is based on sampling the depth using support mapping, and using GJK step to get the witness points.
+// DrChat: CHANGE btConvexConvexAlgorithm.cpp:194 IF YOU ADD ANY CLASS MEMBERS
 class btMinkowskiPenetrationDepthSolver : public btConvexPenetrationDepthSolver
 {
 protected:

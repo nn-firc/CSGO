@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -850,9 +850,9 @@ static void setupSpatialGridBatchesMt(
 		memHelper.addChunk((void**)&conInfos, sizeof(btBatchedConstraintInfo) * numConstraints);
 		memHelper.addChunk((void**)&constraintBatchIds, sizeof(int) * numConstraints);
 		memHelper.addChunk((void**)&constraintRowBatchIds, sizeof(int) * numConstraintRows);
-		size_t scratchSize = memHelper.getSizeToAllocate();
+		int scratchSize = memHelper.getSizeToAllocate();
 		// if we need to reallocate
-		if (static_cast<size_t>(scratchMemory->capacity()) < scratchSize)
+		if (scratchMemory->capacity() < scratchSize)
 		{
 			// allocate 6.25% extra to avoid repeated reallocs
 			scratchMemory->reserve(scratchSize + scratchSize / 16);

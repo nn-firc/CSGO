@@ -199,7 +199,7 @@ struct UpdaterUnconstrainedMotion : public btIParallelForBody
 		for (int i = iBegin; i < iEnd; ++i)
 		{
 			btRigidBody* body = rigidBodies[i];
-			if (!body->isStaticOrKinematicObject())
+			if (body->isActive() && !body->isStaticOrKinematicObject())
 			{
 				//don't integrate/update velocities here, it happens in the constraint solver
 				body->applyDamping(timeStep);
@@ -251,9 +251,9 @@ void btDiscreteDynamicsWorldMt::integrateTransforms(btScalar timeStep)
 	}
 }
 
-int btDiscreteDynamicsWorldMt::stepSimulation(btScalar timeStep, int maxSubSteps, btScalar fixedTimeStep)
+int btDiscreteDynamicsWorldMt::stepSimulation(btScalar timeStep, int maxSubSteps, btScalar fixedTimeStep, int fixedSubSteps)
 {
-	int numSubSteps = btDiscreteDynamicsWorld::stepSimulation(timeStep, maxSubSteps, fixedTimeStep);
+	int numSubSteps = btDiscreteDynamicsWorld::stepSimulation(timeStep, maxSubSteps, fixedTimeStep, fixedSubSteps);
 	if (btITaskScheduler* scheduler = btGetTaskScheduler())
 	{
 		// tell Bullet's threads to sleep, so other threads can run

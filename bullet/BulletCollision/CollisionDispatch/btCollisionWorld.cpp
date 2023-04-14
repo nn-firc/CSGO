@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -36,7 +36,7 @@ subject to the following restrictions:
 #include "LinearMath/btSerializer.h"
 #include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
-
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 //#define DISABLE_DBVT_COMPOUNDSHAPE_RAYCAST_ACCELERATION
 
 //#define USE_BRUTEFORCE_RAYBROADPHASE 1
@@ -178,18 +178,13 @@ void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	}
 	else
 	{
-		//something went wrong, investigate
-		//this assert is unwanted in 3D modelers (danger of loosing work)
-		colObj->setActivationState(DISABLE_SIMULATION);
-
-		static bool reportMe = true;
-		if (reportMe && m_debugDrawer)
+		if (colObj->getActivationState() != DISABLE_SIMULATION)
 		{
-			reportMe = false;
-			m_debugDrawer->reportErrorWarning("Overflow in AABB, object removed from simulation");
-			m_debugDrawer->reportErrorWarning("If you can reproduce this, please email bugs@continuousphysics.com\n");
-			m_debugDrawer->reportErrorWarning("Please include above information, your Platform, version of OS.\n");
-			m_debugDrawer->reportErrorWarning("Thanks.\n");
+			//something went wrong, investigate
+			//this assert is unwanted in 3D modelers (danger of losing work)
+			colObj->setActivationState(DISABLE_SIMULATION);
+
+			btDbgWarning("Overflow in AABB, object \"%s\" removed from simulation!\n", colObj->getDebugName() ? colObj->getDebugName() : "<unset name>");
 		}
 	}
 }
@@ -198,6 +193,7 @@ void btCollisionWorld::updateAabbs()
 {
 	BT_PROFILE("updateAabbs");
 
+	btTransform predictedTrans;
 	for (int i = 0; i < m_collisionObjects.size(); i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
@@ -277,7 +273,8 @@ void btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans, const btTr
 									 btCollisionObject* collisionObject,
 									 const btCollisionShape* collisionShape,
 									 const btTransform& colObjWorldTransform,
-									 RayResultCallback& resultCallback)
+									 RayResultCallback& resultCallback,
+									 btIDebugDraw* debugDraw)
 {
 	btCollisionObjectWrapper colObWrap(0, collisionShape, collisionObject, colObjWorldTransform, -1, -1);
 	btCollisionWorld::rayTestSingleInternal(rayFromTrans, rayToTrans, &colObWrap, resultCallback);
@@ -285,7 +282,8 @@ void btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans, const btTr
 
 void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, const btTransform& rayToTrans,
 											 const btCollisionObjectWrapper* collisionObjectWrap,
-											 RayResultCallback& resultCallback)
+											 RayResultCallback& resultCallback,
+											 btIDebugDraw* debugDraw)
 {
 	btSphereShape pointShape(btScalar(0.0));
 	pointShape.setMargin(0.f);
@@ -298,8 +296,10 @@ void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, co
 		//		BT_PROFILE("rayTestConvex");
 		btConvexCast::CastResult castResult;
 		castResult.m_fraction = resultCallback.m_closestHitFraction;
+		castResult.m_debugDrawer = debugDraw;
 
 		btConvexShape* convexShape = (btConvexShape*)collisionShape;
+
 		btVoronoiSimplexSolver simplexSolver;
 		btSubsimplexConvexCast subSimplexConvexCaster(castShape, convexShape, &simplexSolver);
 
@@ -413,9 +413,7 @@ void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, co
 				rcb.m_hitFraction = resultCallback.m_closestHitFraction;
 				triangleMesh->performRaycast(&rcb, rayFromLocalScaled, rayToLocalScaled);
 			}
-			else if (((resultCallback.m_flags&btTriangleRaycastCallback::kF_DisableHeightfieldAccelerator)==0) 
-				&& collisionShape->getShapeType() == TERRAIN_SHAPE_PROXYTYPE 
-				)
+			else if (((resultCallback.m_flags & btTriangleRaycastCallback::kF_DisableHeightfieldAccelerator) == 0) && collisionShape->getShapeType() == TERRAIN_SHAPE_PROXYTYPE)
 			{
 				///optimized version for btHeightfieldTerrainShape
 				btHeightfieldTerrainShape* heightField = (btHeightfieldTerrainShape*)collisionShape;
@@ -529,18 +527,21 @@ void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, co
 					const btTransform& m_rayFromTrans;
 					const btTransform& m_rayToTrans;
 					RayResultCallback& m_resultCallback;
+					btIDebugDraw* m_debugDrawer;
 
 					RayTester(const btCollisionObject* collisionObject,
 							  const btCompoundShape* compoundShape,
 							  const btTransform& colObjWorldTransform,
 							  const btTransform& rayFromTrans,
 							  const btTransform& rayToTrans,
-							  RayResultCallback& resultCallback) : m_collisionObject(collisionObject),
-																   m_compoundShape(compoundShape),
-																   m_colObjWorldTransform(colObjWorldTransform),
-																   m_rayFromTrans(rayFromTrans),
-																   m_rayToTrans(rayToTrans),
-																   m_resultCallback(resultCallback)
+							  RayResultCallback& resultCallback,
+							  btIDebugDraw* debugDrawer) : m_collisionObject(collisionObject),
+														   m_compoundShape(compoundShape),
+														   m_colObjWorldTransform(colObjWorldTransform),
+														   m_rayFromTrans(rayFromTrans),
+														   m_rayToTrans(rayToTrans),
+														   m_resultCallback(resultCallback),
+														   m_debugDrawer(debugDrawer)
 					{
 					}
 
@@ -559,7 +560,8 @@ void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, co
 							m_rayFromTrans,
 							m_rayToTrans,
 							&tmpOb,
-							my_cb);
+							my_cb,
+							m_debugDrawer);
 					}
 
 					void Process(const btDbvtNode* leaf)
@@ -577,7 +579,9 @@ void btCollisionWorld::rayTestSingleInternal(const btTransform& rayFromTrans, co
 					colObjWorldTransform,
 					rayFromTrans,
 					rayToTrans,
-					resultCallback);
+					resultCallback,
+					debugDraw);
+
 #ifndef DISABLE_DBVT_COMPOUNDSHAPE_RAYCAST_ACCELERATION
 				if (dbvt)
 				{
@@ -627,8 +631,8 @@ void btCollisionWorld::objectQuerySingleInternal(const btConvexShape* castShape,
 		btGjkEpaPenetrationDepthSolver gjkEpaPenetrationSolver;
 
 		btContinuousConvexCollision convexCaster1(castShape, convexShape, &simplexSolver, &gjkEpaPenetrationSolver);
-		//btGjkConvexCast convexCaster2(castShape,convexShape,&simplexSolver);
-		//btSubsimplexConvexCast convexCaster3(castShape,convexShape,&simplexSolver);
+		//btGjkConvexCast convexCaster2(castShape, convexShape, &simplexSolver);
+		//btSubsimplexConvexCast convexCaster3(castShape, convexShape, &simplexSolver);
 
 		btConvexCast* castPtr = &convexCaster1;
 
@@ -646,6 +650,7 @@ void btCollisionWorld::objectQuerySingleInternal(const btConvexShape* castShape,
 						castResult.m_normal,
 						castResult.m_hitPoint,
 						castResult.m_fraction);
+					localConvexResult.m_penetrationDist = castResult.m_penetrationDist;
 
 					bool normalInWorldSpace = true;
 					resultCallback.addSingleResult(localConvexResult, normalInWorldSpace);
@@ -843,6 +848,7 @@ void btCollisionWorld::objectQuerySingleInternal(const btConvexShape* castShape,
 					void ProcessChild(int index, const btTransform& childTrans, const btCollisionShape* childCollisionShape)
 					{
 						btTransform childWorldTrans = m_colObjWorldTransform * childTrans;
+						//btTransform childWorldTrans = childTrans;
 
 						struct LocalInfoAdder : public ConvexResultCallback
 						{
@@ -917,7 +923,7 @@ void btCollisionWorld::objectQuerySingleInternal(const btConvexShape* castShape,
 					for (i = 0; i < compoundShape->getNumChildShapes(); i++)
 					{
 						const btCollisionShape* childCollisionShape = compoundShape->getChildShape(i);
-						btTransform childTrans = compoundShape->getChildTransform(i);
+						const btTransform& childTrans = compoundShape->getChildTransform(i);
 						callback.ProcessChild(i, childTrans, childCollisionShape);
 					}
 				}
@@ -974,26 +980,27 @@ struct btSingleRayCallback : public btBroadphaseRayCallback
 		if (m_resultCallback.needsCollision(collisionObject->getBroadphaseHandle()))
 		{
 			//RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
-			//btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
+			//btVector3 collisionObjectAabbMin, collisionObjectAabbMax;
 #if 0
 #ifdef RECALCULATE_AABB
-			btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
-			collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(),collisionObjectAabbMin,collisionObjectAabbMax);
+			btVector3 collisionObjectAabbMin, collisionObjectAabbMax;
+			collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(), collisionObjectAabbMin, collisionObjectAabbMax);
 #else
-			//getBroadphase()->getAabb(collisionObject->getBroadphaseHandle(),collisionObjectAabbMin,collisionObjectAabbMax);
+			//getBroadphase()->getAabb(collisionObject->getBroadphaseHandle(), collisionObjectAabbMin, collisionObjectAabbMax);
 			const btVector3& collisionObjectAabbMin = collisionObject->getBroadphaseHandle()->m_aabbMin;
 			const btVector3& collisionObjectAabbMax = collisionObject->getBroadphaseHandle()->m_aabbMax;
 #endif
 #endif
 			//btScalar hitLambda = m_resultCallback.m_closestHitFraction;
 			//culling already done by broadphase
-			//if (btRayAabb(m_rayFromWorld,m_rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,m_hitNormal))
+			//if (btRayAabb(m_rayFromWorld, m_rayToWorld, collisionObjectAabbMin, collisionObjectAabbMax, hitLambda, m_hitNormal))
 			{
 				m_world->rayTestSingle(m_rayFromTrans, m_rayToTrans,
 									   collisionObject,
 									   collisionObject->getCollisionShape(),
 									   collisionObject->getWorldTransform(),
-									   m_resultCallback);
+									   m_resultCallback,
+									   m_world->getDebugDrawer());
 			}
 		}
 		return true;
@@ -1036,7 +1043,7 @@ struct btSingleSweepCallback : public btBroadphaseRayCallback
 		  m_castShape(castShape)
 	{
 		btVector3 unnormalizedRayDir = (m_convexToTrans.getOrigin() - m_convexFromTrans.getOrigin());
-		btVector3 rayDir = unnormalizedRayDir.fuzzyZero() ? btVector3(btScalar(0.0), btScalar(0.0), btScalar(0.0)) : unnormalizedRayDir.normalized();
+		btVector3 rayDir = unnormalizedRayDir.normalized();
 		///what about division by zero? --> just set rayDirection[i] to INF/BT_LARGE_FLOAT
 		m_rayDirectionInverse[0] = rayDir[0] == btScalar(0.0) ? btScalar(BT_LARGE_FLOAT) : btScalar(1.0) / rayDir[0];
 		m_rayDirectionInverse[1] = rayDir[1] == btScalar(0.0) ? btScalar(BT_LARGE_FLOAT) : btScalar(1.0) / rayDir[1];
@@ -1293,7 +1300,9 @@ public:
 			btVector3 normalColor(1, 1, 0);
 			m_debugDrawer->drawLine(center, center + normal, normalColor);
 		}
-		m_debugDrawer->drawTriangle(wv0, wv1, wv2, m_color, 1.0);
+		m_debugDrawer->drawLine(wv0, wv1, m_color);
+		m_debugDrawer->drawLine(wv1, wv2, m_color);
+		m_debugDrawer->drawLine(wv2, wv0, m_color);
 	}
 };
 
@@ -1310,7 +1319,7 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 		const btCompoundShape* compoundShape = static_cast<const btCompoundShape*>(shape);
 		for (int i = compoundShape->getNumChildShapes() - 1; i >= 0; i--)
 		{
-			btTransform childTrans = compoundShape->getChildTransform(i);
+			const btTransform& childTrans = compoundShape->getChildTransform(i);
 			const btCollisionShape* colShape = compoundShape->getChildShape(i);
 			debugDrawObject(worldTransform * childTrans, colShape, color);
 		}

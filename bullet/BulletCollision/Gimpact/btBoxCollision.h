@@ -68,7 +68,7 @@ enum eBT_PLANE_INTERSECTION_TYPE
 //	//find minmax
 //	if(pmin>pmax)
 //	{
-//		BT_SWAP_NUMBERS(pmin,pmax);
+//		BT_SWAP_NUMBERS(pmin, pmax);
 //	}
 //	//find extends
 //	const btScalar rad = extend[component_index0] * absolute_edge[dir_index0] +
@@ -85,7 +85,7 @@ enum eBT_PLANE_INTERSECTION_TYPE
 //	const btVector3 & pointb, btVector3 & extend)
 //{
 //
-//	return test_cross_edge_box(edge,absolute_edge,pointa,pointb,extend,2,1,1,2);
+//	return test_cross_edge_box(edge, absolute_edge, pointa, pointb, extend,2,1,1,2);
 //}
 //
 //
@@ -96,7 +96,7 @@ enum eBT_PLANE_INTERSECTION_TYPE
 //	const btVector3 & pointb, btVector3 & extend)
 //{
 //
-//	return test_cross_edge_box(edge,absolute_edge,pointa,pointb,extend,0,2,2,0);
+//	return test_cross_edge_box(edge, absolute_edge, pointa, pointb, extend,0,2,2,0);
 //}
 //
 //SIMD_FORCE_INLINE bool test_cross_edge_box_Z_axis(
@@ -106,7 +106,7 @@ enum eBT_PLANE_INTERSECTION_TYPE
 //	const btVector3 & pointb, btVector3 & extend)
 //{
 //
-//	return test_cross_edge_box(edge,absolute_edge,pointa,pointb,extend,1,0,0,1);
+//	return test_cross_edge_box(edge, absolute_edge, pointa, pointb, extend,1,0,0,1);
 //}
 
 #define TEST_CROSS_EDGE_BOX_MCR(edge, absolute_edge, pointa, pointb, _extend, i_dir_0, i_dir_1, i_comp_0, i_comp_1) \
@@ -229,12 +229,10 @@ public:
 		m_min[0] = BT_MIN3(V1[0], V2[0], V3[0]);
 		m_min[1] = BT_MIN3(V1[1], V2[1], V3[1]);
 		m_min[2] = BT_MIN3(V1[2], V2[2], V3[2]);
-		m_min[3] = 0.f;
 
 		m_max[0] = BT_MAX3(V1[0], V2[0], V3[0]);
 		m_max[1] = BT_MAX3(V1[1], V2[1], V3[1]);
 		m_max[2] = BT_MAX3(V1[2], V2[2], V3[2]);
-		m_max[3] = 0.f;
 	}
 
 	btAABB(const btVector3 &V1,
@@ -245,12 +243,10 @@ public:
 		m_min[0] = BT_MIN3(V1[0], V2[0], V3[0]);
 		m_min[1] = BT_MIN3(V1[1], V2[1], V3[1]);
 		m_min[2] = BT_MIN3(V1[2], V2[2], V3[2]);
-		m_min[3] = 0.f;
 
 		m_max[0] = BT_MAX3(V1[0], V2[0], V3[0]);
 		m_max[1] = BT_MAX3(V1[1], V2[1], V3[1]);
 		m_max[2] = BT_MAX3(V1[2], V2[2], V3[2]);
-		m_max[3] = 0.f;
 
 		m_min[0] -= margin;
 		m_min[1] -= margin;
@@ -279,11 +275,9 @@ public:
 		m_min[0] = SIMD_INFINITY;
 		m_min[1] = SIMD_INFINITY;
 		m_min[2] = SIMD_INFINITY;
-		m_min[3] = 0.f;
 		m_max[0] = -SIMD_INFINITY;
 		m_max[1] = -SIMD_INFINITY;
 		m_max[2] = -SIMD_INFINITY;
-		m_max[3] = 0.f;
 	}
 
 	SIMD_FORCE_INLINE void increment_margin(btScalar margin)
@@ -301,12 +295,10 @@ public:
 		m_min[0] = other.m_min[0] - margin;
 		m_min[1] = other.m_min[1] - margin;
 		m_min[2] = other.m_min[2] - margin;
-		m_min[3] = 0.f;
 
 		m_max[0] = other.m_max[0] + margin;
 		m_max[1] = other.m_max[1] + margin;
 		m_max[2] = other.m_max[2] + margin;
-		m_max[3] = 0.f;
 	}
 
 	template <typename CLASS_POINT>
@@ -318,12 +310,10 @@ public:
 		m_min[0] = BT_MIN3(V1[0], V2[0], V3[0]);
 		m_min[1] = BT_MIN3(V1[1], V2[1], V3[1]);
 		m_min[2] = BT_MIN3(V1[2], V2[2], V3[2]);
-		m_min[3] = 0.f;
 
 		m_max[0] = BT_MAX3(V1[0], V2[0], V3[0]);
 		m_max[1] = BT_MAX3(V1[1], V2[1], V3[1]);
 		m_max[2] = BT_MAX3(V1[2], V2[2], V3[2]);
-		m_max[3] = 0.f;
 	}
 
 	template <typename CLASS_POINT>
@@ -335,12 +325,10 @@ public:
 		m_min[0] = BT_MIN3(V1[0], V2[0], V3[0]);
 		m_min[1] = BT_MIN3(V1[1], V2[1], V3[1]);
 		m_min[2] = BT_MIN3(V1[2], V2[2], V3[2]);
-		m_min[3] = 0.f;
 
 		m_max[0] = BT_MAX3(V1[0], V2[0], V3[0]);
 		m_max[1] = BT_MAX3(V1[1], V2[1], V3[1]);
 		m_max[2] = BT_MAX3(V1[2], V2[2], V3[2]);
-		m_max[3] = 0.f;
 
 		m_min[0] -= margin;
 		m_min[1] -= margin;

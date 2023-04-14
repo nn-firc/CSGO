@@ -169,12 +169,9 @@ btVectorXu btLemkeAlgorithm::solve(unsigned int maxloops /* = 0*/)
 
 			/*the column becomes part of the basis*/
 			basis[pivotRowIndex] = pivotColIndexOld;
-			bool isRayTermination = false;
-			pivotRowIndex = findLexicographicMinimum(A, pivotColIndex, z0Row, isRayTermination);
-			if (isRayTermination)
-			{
-				break; // ray termination
-			}
+
+			pivotRowIndex = findLexicographicMinimum(A, pivotColIndex);
+
 			if (z0Row == pivotRowIndex)
 			{  //if z0 leaves the basis the solution is found --> one last elimination step is necessary
 				GaussJordanEliminationStep(A, pivotRowIndex, pivotColIndex, basis);
@@ -220,100 +217,79 @@ btVectorXu btLemkeAlgorithm::solve(unsigned int maxloops /* = 0*/)
 	return solutionVector;
 }
 
-int btLemkeAlgorithm::findLexicographicMinimum(const btMatrixXu& A, const int& pivotColIndex, const int& z0Row, bool& isRayTermination)
+int btLemkeAlgorithm::findLexicographicMinimum(const btMatrixXu& A, const int& pivotColIndex)
 {
-	isRayTermination = false;
-	btAlignedObjectArray<int> activeRows;
-
-        bool firstRow = true;
-	btScalar currentMin = 0.0;
-
+	int RowIndex = 0;
 	int dim = A.rows();
-
+	btAlignedObjectArray<btVectorXu> Rows;
 	for (int row = 0; row < dim; row++)
 	{
-		const btScalar denom = A(row, pivotColIndex);
-
-		if (denom > btMachEps())
+		btVectorXu vec(dim + 1);
+		vec.setZero();  //, INIT, 0.)
+		Rows.push_back(vec);
+		btScalar a = A(row, pivotColIndex);
+		if (a > 0)
 		{
-			const btScalar q = A(row, dim + dim + 1) / denom;
-			if (firstRow)
+			Rows[row][0] = A(row, 2 * dim + 1) / a;
+			Rows[row][1] = A(row, 2 * dim) / a;
+			for (int j = 2; j < dim + 1; j++)
+				Rows[row][j] = A(row, j - 1) / a;
+
+#ifdef BT_DEBUG_OSTREAM
+				//		if (DEBUGLEVEL) {
+				//	  cout << "Rows(" << row << ") = " << Rows[row] << endl;
+				// }
+#endif
+		}
+	}
+
+	for (int i = 0; i < Rows.size(); i++)
+	{
+		if (Rows[i].nrm2() > 0.)
+		{
+			int j = 0;
+			for (; j < Rows.size(); j++)
 			{
-				currentMin = q;
-				activeRows.push_back(row);
-				firstRow = false;
+				if (i != j)
+				{
+					if (Rows[j].nrm2() > 0.)
+					{
+						btVectorXu test(dim + 1);
+						for (int ii = 0; ii < dim + 1; ii++)
+						{
+							test[ii] = Rows[j][ii] - Rows[i][ii];
+						}
+
+						//=Rows[j] - Rows[i]
+						if (!LexicographicPositive(test))
+							break;
+					}
+				}
 			}
-			else if (fabs(currentMin - q) < btMachEps())
+
+			if (j == Rows.size())
 			{
-				activeRows.push_back(row);
-			}
-			else if (currentMin > q)
-			{
-				currentMin = q;
-				activeRows.clear();
-				activeRows.push_back(row);
+				RowIndex += i;
+				break;
 			}
 		}
 	}
 
-	if (activeRows.size() == 0)
-	{
-		isRayTermination = true;
-		return 0;
-	}
-	else if (activeRows.size() == 1)
-	{
-		return activeRows[0];
-	}
+	return RowIndex;
+}
 
-	// if there are multiple rows, check if they contain the row for z_0.
-	for (int i = 0; i < activeRows.size(); i++)
-	{
-		if (activeRows[i] == z0Row)
-		{
-			return z0Row;
-		}
-	}
+bool btLemkeAlgorithm::LexicographicPositive(const btVectorXu& v)
+{
+	int i = 0;
+	//  if (DEBUGLEVEL)
+	//  cout << "v " << v << endl;
 
-	// look through the columns of the inverse of the basic matrix from left to right until the tie is broken.
-	for (int col = 0; col < dim ; col++)
-	{
-		btAlignedObjectArray<int> activeRowsCopy(activeRows);
-		activeRows.clear();
-		firstRow = true;
-		for (int i = 0; i<activeRowsCopy.size();i++)
-		{
-			const int row = activeRowsCopy[i];
+	while (i < v.size() - 1 && fabs(v[i]) < btMachEps())
+		i++;
+	if (v[i] > 0)
+		return true;
 
-			// denom is positive here as an invariant.
-			const btScalar denom = A(row, pivotColIndex);
-			const btScalar ratio = A(row, col) / denom;
-			if (firstRow)
-			{
-				currentMin = ratio;
-				activeRows.push_back(row);
-				firstRow = false;
-			}
-			else if (fabs(currentMin - ratio) < btMachEps())
-			{
-				activeRows.push_back(row);
-			}
-			else if (currentMin > ratio)
-			{
-				currentMin = ratio;
-				activeRows.clear();
-				activeRows.push_back(row);
-			}
-		}
-
-		if (activeRows.size() == 1)
-		{
-			return activeRows[0];
-		}
-	}
-	// must not reach here.
-	isRayTermination = true;
-	return 0;
+	return false;
 }
 
 void btLemkeAlgorithm::GaussJordanEliminationStep(btMatrixXu& A, int pivotRowIndex, int pivotColumnIndex, const btAlignedObjectArray<int>& basis)

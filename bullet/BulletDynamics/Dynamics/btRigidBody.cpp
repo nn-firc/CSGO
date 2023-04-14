@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,7 +22,8 @@ subject to the following restrictions:
 #include "LinearMath/btSerializer.h"
 
 //'temporarily' global variables
-btScalar gDeactivationTime = btScalar(2.);
+// FIXME: These should not be global variables!!!
+btScalar gDeactivationTime = btScalar(.5);
 bool gDisableDeactivation = false;
 static int uniqueId = 0;
 
@@ -61,6 +62,8 @@ void btRigidBody::setupRigidBody(const btRigidBody::btRigidBodyConstructionInfo&
 	m_additionalLinearDampingThresholdSqr = constructionInfo.m_additionalLinearDampingThresholdSqr;
 	m_additionalAngularDampingThresholdSqr = constructionInfo.m_additionalAngularDampingThresholdSqr;
 	m_additionalAngularDampingFactor = constructionInfo.m_additionalAngularDampingFactor;
+
+	m_centerOfMassOffset.setZero();
 
 	if (m_optionalMotionState)
 	{
@@ -116,7 +119,7 @@ void btRigidBody::saveKinematicState(btScalar timeStep)
 		m_interpolationLinearVelocity = m_linearVelocity;
 		m_interpolationAngularVelocity = m_angularVelocity;
 		m_interpolationWorldTransform = m_worldTransform;
-		//printf("angular = %f %f %f\n",m_angularVelocity.getX(),m_angularVelocity.getY(),m_angularVelocity.getZ());
+		//printf("angular = %f %f %f\n", m_angularVelocity.getX(), m_angularVelocity.getY(), m_angularVelocity.getZ());
 	}
 }
 
@@ -136,28 +139,38 @@ void btRigidBody::setGravity(const btVector3& acceleration)
 
 void btRigidBody::setDamping(btScalar lin_damping, btScalar ang_damping)
 {
-#ifdef BT_USE_OLD_DAMPING_METHOD
-	m_linearDamping = btMax(lin_damping, btScalar(0.0));
-	m_angularDamping = btMax(ang_damping, btScalar(0.0));
-#else
-	m_linearDamping = btClamped(lin_damping, btScalar(0.0), btScalar(1.0));
-	m_angularDamping = btClamped(ang_damping, btScalar(0.0), btScalar(1.0));
-#endif
+	// DrChat: bullet's old damping
+	//m_linearDamping = btClamped(lin_damping, (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
+	//m_angularDamping = btClamped(ang_damping, (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
+
+	m_linearDamping = lin_damping;
+	m_angularDamping = ang_damping;
 }
 
 ///applyDamping damps the velocity, using the given m_linearDamping and m_angularDamping
 void btRigidBody::applyDamping(btScalar timeStep)
 {
 	//On new damping: see discussion/issue report here: http://code.google.com/p/bullet/issues/detail?id=74
-	//todo: do some performance comparisons (but other parts of the engine are probably bottleneck anyway
+	//todo: do some performance comparisons (but other parts of the engine are probably bottleneck anyway)
 
-#ifdef BT_USE_OLD_DAMPING_METHOD
-	m_linearVelocity *= btMax((btScalar(1.0) - timeStep * m_linearDamping), btScalar(0.0));
-	m_angularVelocity *= btMax((btScalar(1.0) - timeStep * m_angularDamping), btScalar(0.0));
-#else
-	m_linearVelocity *= btPow(btScalar(1) - m_linearDamping, timeStep);
-	m_angularVelocity *= btPow(btScalar(1) - m_angularDamping, timeStep);
-#endif
+	// DrChat: bullet's old damping
+	/*
+	if (!btFuzzyZero(m_linearDamping) && !m_linearVelocity.fuzzyZero())
+		m_linearVelocity *= btPow(btScalar(1)-m_linearDamping, timeStep);
+
+	if (!btFuzzyZero(m_angularDamping) && !m_angularVelocity.fuzzyZero())
+		m_angularVelocity *= btPow(btScalar(1)-m_angularDamping, timeStep);
+	*/
+
+	if (!btFuzzyZero(m_linearDamping) && !m_linearVelocity.fuzzyZero())
+	{
+		m_linearVelocity *= btExp(-m_linearDamping * timeStep);
+	}
+
+	if (!btFuzzyZero(m_angularDamping) && !m_angularVelocity.fuzzyZero())
+	{
+		m_angularVelocity *= btExp(-m_angularDamping * timeStep);
+	}
 
 	if (m_additionalDamping)
 	{
@@ -212,15 +225,27 @@ void btRigidBody::applyGravity()
 
 void btRigidBody::clearGravity()
 {
-    if (isStaticOrKinematicObject())
-        return;
-    
-    applyCentralForce(-m_gravity);
+	if (isStaticOrKinematicObject())
+		return;
+
+	applyCentralForce(-m_gravity);
 }
 
 void btRigidBody::proceedToTransform(const btTransform& newTrans)
 {
-	setCenterOfMassTransform(newTrans);
+	if (isKinematicObject())
+	{
+		m_interpolationWorldTransform = m_worldTransform;
+	}
+	else
+	{
+		m_interpolationWorldTransform = newTrans;
+	}
+
+	m_interpolationLinearVelocity = getLinearVelocity();
+	m_interpolationAngularVelocity = getAngularVelocity();
+	m_worldTransform = newTrans;
+	updateInertiaTensor();
 }
 
 void btRigidBody::setMassProps(btScalar mass, const btVector3& inertia)
@@ -384,9 +409,6 @@ void btRigidBody::integrateVelocities(btScalar step)
 	{
 		m_angularVelocity *= (MAX_ANGVEL / step) / angvel;
 	}
-	#if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
-	clampVelocity(m_angularVelocity);
-	#endif
 }
 
 btQuaternion btRigidBody::getOrientation() const
@@ -394,22 +416,6 @@ btQuaternion btRigidBody::getOrientation() const
 	btQuaternion orn;
 	m_worldTransform.getBasis().getRotation(orn);
 	return orn;
-}
-
-void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
-{
-	if (isKinematicObject())
-	{
-		m_interpolationWorldTransform = m_worldTransform;
-	}
-	else
-	{
-		m_interpolationWorldTransform = xform;
-	}
-	m_interpolationLinearVelocity = getLinearVelocity();
-	m_interpolationAngularVelocity = getAngularVelocity();
-	m_worldTransform = xform;
-	updateInertiaTensor();
 }
 
 void btRigidBody::addConstraintRef(btTypedConstraint* c)

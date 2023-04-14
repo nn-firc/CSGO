@@ -4,8 +4,8 @@ Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -479,9 +479,9 @@ public:
 			buffer[8] = 'V';
 		}
 
-		buffer[9] = '3';
-		buffer[10] = '2';
-		buffer[11] = '5';
+		buffer[9] = '2';
+		buffer[10] = '8';
+		buffer[11] = '9';
 	}
 
 	virtual void startSerialization()
@@ -499,6 +499,7 @@ public:
 		writeDNA();
 
 		//if we didn't pre-allocate a buffer, we need to create a contiguous buffer now
+		int mysize = 0;
 		if (!m_totalSize)
 		{
 			if (m_buffer)
@@ -510,12 +511,14 @@ public:
 			unsigned char* currentPtr = m_buffer;
 			writeHeader(m_buffer);
 			currentPtr += BT_HEADER_LENGTH;
+			mysize += BT_HEADER_LENGTH;
 			for (int i = 0; i < m_chunkPtrs.size(); i++)
 			{
-				int curLength = (int)sizeof(btChunk) + m_chunkPtrs[i]->m_length;
+				int curLength = sizeof(btChunk) + m_chunkPtrs[i]->m_length;
 				memcpy(currentPtr, m_chunkPtrs[i], curLength);
 				btAlignedFree(m_chunkPtrs[i]);
 				currentPtr += curLength;
+				mysize += curLength;
 			}
 		}
 

@@ -30,12 +30,11 @@ protected:
 	int m_shapeType;
 	void* m_userPointer;
 	int m_userIndex;
-	int m_userIndex2;
 
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-	btCollisionShape() : m_shapeType(INVALID_SHAPE_PROXYTYPE), m_userPointer(0), m_userIndex(-1), m_userIndex2(-1)
+	btCollisionShape() : m_shapeType(INVALID_SHAPE_PROXYTYPE), m_userPointer(0), m_userIndex(-1)
 	{
 	}
 
@@ -138,22 +137,14 @@ public:
 		return m_userIndex;
 	}
 
-	void setUserIndex2(int index)
-	{
-		m_userIndex2 = index;
-	}
-
-	int getUserIndex2() const
-	{
-		return m_userIndex2;
-	}
-
 	virtual int calculateSerializeBufferSize() const;
 
 	///fills the dataBuffer and returns the struct name (and 0 on failure)
 	virtual const char* serialize(void* dataBuffer, btSerializer* serializer) const;
 
 	virtual void serializeSingleShape(btSerializer * serializer) const;
+
+	virtual size_t getByteSize() const { return sizeof(*this); }
 };
 
 // clang-format off
@@ -166,6 +157,7 @@ struct	btCollisionShapeData
 	char	m_padding[4];
 };
 // clang-format on
+
 SIMD_FORCE_INLINE int btCollisionShape::calculateSerializeBufferSize() const
 {
 	return sizeof(btCollisionShapeData);

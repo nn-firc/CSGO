@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -234,8 +234,8 @@ public:
 	btQuaternion& operator*=(const btScalar& s)
 	{
 #if defined(BT_USE_SSE_IN_API) && defined(BT_USE_SSE)
-		__m128 vs = _mm_load_ss(&s);  //	(S 0 0 0)
-		vs = bt_pshufd_ps(vs, 0);     //	(S S S S)
+		__m128 vs = _mm_set_ss(s);  //	(S 0 0 0)
+		vs = bt_pshufd_ps(vs, 0);   //	(S S S S)
 		mVec128 = _mm_mul_ps(mVec128, vs);
 #elif defined(BT_USE_NEON)
 		mVec128 = vmulq_n_f32(mVec128, s);
@@ -411,7 +411,7 @@ public:
 	operator*(const btScalar& s) const
 	{
 #if defined(BT_USE_SSE_IN_API) && defined(BT_USE_SSE)
-		__m128 vs = _mm_load_ss(&s);  //	(S 0 0 0)
+		__m128 vs = _mm_set_ss(s);    //	(S 0 0 0)
 		vs = bt_pshufd_ps(vs, 0x00);  //	(S S S S)
 
 		return btQuaternion(_mm_mul_ps(mVec128, vs));

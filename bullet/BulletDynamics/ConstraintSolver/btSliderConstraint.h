@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  https://bulletphysics.org
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -269,6 +269,8 @@ public:
 		buildJacobian();
 	}
 
+	void debugDraw(btIDebugDraw * pDebugDrawer);
+
 	///override the default global value of a parameter (such as ERP or CFM), optionally provide the axis (0..5).
 	///If no axis is provided, it uses the default axis for this constraint.
 	virtual void setParam(int num, btScalar value, int axis = -1);
@@ -287,7 +289,6 @@ public:
 };
 
 ///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
-
 struct btSliderConstraintData
 {
 	btTypedConstraintData m_typeConstraintData;

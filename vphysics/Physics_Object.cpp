@@ -1,3 +1,4 @@
+
 #include "StdAfx.h"
 
 #include <cmodel.h>
@@ -78,7 +79,7 @@ CPhysicsObject::~CPhysicsObject() {
 	m_bRemoving = true;
 
 	if (m_pEnv) {
-		RemoveShadowController();
+		CPhysicsObject::RemoveShadowController();
 		m_pEnv->GetDragController()->RemovePhysicsObject(this);
 
 		if (m_pFluidController)
@@ -291,7 +292,7 @@ void CPhysicsObject::RecheckCollisionFilter() {
 	}
 }
 
-void CPhysicsObject::RecheckContactPoints() {
+void CPhysicsObject::RecheckContactPoints( bool bSearchforNewContacts ) {
 	return;
 }
 
@@ -300,6 +301,8 @@ void CPhysicsObject::SetMass(float mass) {
 
 	m_fMass = mass;
 
+	//lwss: The rigid body should be removed and re-added to apply the mass changes.
+	m_pEnv->GetBulletEnvironment()->removeRigidBody( m_pObject );
 	btVector3 inertia(0, 0, 0);
 	m_pObject->getCollisionShape()->calculateLocalInertia(mass, inertia);
 
@@ -309,6 +312,7 @@ void CPhysicsObject::SetMass(float mass) {
 	//inertia.setZ(SAFE_DIVIDE(1.0f, inertia.z()));
 
 	m_pObject->setMassProps(mass, inertia);
+	m_pEnv->GetBulletEnvironment()->addRigidBody( m_pObject );
 }
 
 float CPhysicsObject::GetMass() const {
@@ -356,10 +360,16 @@ void CPhysicsObject::SetInertia(const Vector &inertia) {
 
 // FIXME: The API is confusing because we need to add the BT_DISABLE_WORLD_GRAVITY flag to the object
 // by calling EnableGravity(false)
+void CPhysicsObject::SetLocalGravity(const btVector3 &gravityVector)
+{
+    //m_pObject->setFlags( BT_DISABLE_WORLD_GRAVITY );
+    m_pObject->setGravity( gravityVector );
+}
+
 void CPhysicsObject::SetLocalGravity(const Vector &gravityVector) {
 	btVector3 tmp;
 	ConvertPosToBull(gravityVector, tmp);
-	m_pObject->setGravity(tmp);
+	SetLocalGravity( tmp );
 }
 
 Vector CPhysicsObject::GetLocalGravity() const {
@@ -412,7 +422,7 @@ void CPhysicsObject::SetMaterialIndex(int materialIndex) {
 		m_materialIndex = materialIndex;
 		m_pObject->setFriction(pSurface->physics.friction);
 		//m_pObject->setRollingFriction(pSurface->physics.friction);
-		m_pObject->setRestitution(min(pSurface->physics.elasticity, 1));
+		m_pObject->setRestitution(MIN(pSurface->physics.elasticity, 1));
 
 		// FIXME: Figure out how to convert damping values.
 
@@ -455,6 +465,19 @@ float CPhysicsObject::GetSphereRadius() const {
 	btSphereShape *sphere = (btSphereShape *)shape;
 	return ConvertDistanceToHL(sphere->getRadius());
 }
+
+//lwss add
+void CPhysicsObject::SetSphereRadius(float radius)
+{
+    btCollisionShape *shape = m_pObject->getCollisionShape();
+    if (shape->getShapeType() != SPHERE_SHAPE_PROXYTYPE)
+        return;
+
+    btSphereShape *sphere = (btSphereShape *)shape;
+    //TODO: unsure SetUnscaledRadius is the proper function here.
+    sphere->setUnscaledRadius( ConvertDistanceToBull( radius ) );
+}
+//lwss end
 
 float CPhysicsObject::GetEnergy() const {
 	// (1/2) * mass * velocity^2
@@ -1145,24 +1168,32 @@ void CPhysicsObject::Init(CPhysicsEnvironment *pEnv, btRigidBody *pObject, int m
 
 	// Compute our continuous collision detection stuff (for fast moving objects, prevents tunneling)
 	// This doesn't work on compound objects! see: btDiscreteDynamicsWorld::integrateTransforms
-	if (!isStatic) {
-		btVector3 mins, maxs;
-		m_pObject->getCollisionShape()->getAabb(btTransform::getIdentity(), mins, maxs);
-		mins = mins.absolute();
-		maxs = maxs.absolute();
+	// TODO: Add support for object specific CCD enable/disable. We only want objects able to move very fast use CCD
+	if (!isStatic) 
+	{
+		btScalar radius(1.0);
+		if (m_pObject->getCollisionShape()) {
+			btVector3 center;
+			m_pObject->getCollisionShape()->getBoundingSphere(center, radius);
+		}
 
-		float maxradius = min(min(maxs.getX(), maxs.getY()), maxs.getZ());
-		float minradius = min(min(mins.getX(), mins.getY()), mins.getZ());
-		float radius = min(maxradius, minradius);
-
-		m_pObject->setCcdMotionThreshold((radius / 2) * (radius / 2));
-		m_pObject->setCcdSweptSphereRadius(0.7f * radius);
+		m_pObject->setCcdMotionThreshold(1e-7);
+		m_pObject->setCcdSweptSphereRadius(radius * 0.2);
+	}
+	else
+	{
+		// Disable CCD
+		m_pObject->setCcdMotionThreshold(10000.0f);
+		m_pObject->setCcdSweptSphereRadius(0.0f);
 	}
 
-	if (isStatic) {
+	if (isStatic) 
+	{
 		m_pObject->setCollisionFlags(m_pObject->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
 		m_pEnv->GetBulletEnvironment()->addRigidBody(m_pObject, COLGROUP_WORLD, ~COLGROUP_WORLD);
-	} else {
+	} 
+	else 
+	{
 		m_pEnv->GetBulletEnvironment()->addRigidBody(m_pObject);
 	}
 }
@@ -1187,6 +1218,50 @@ void CPhysicsObject::DetachEventListener(IObjectEventListener *pListener) {
 		m_pEventListeners.Remove(listener);
 	}
 }
+
+//lwss add
+void CPhysicsObject::SetUseAlternateGravity(bool bSet)
+{
+    // lwss: Changed ragdolls to set their gravity manually instead of an "alternate" gravity
+}
+
+void CPhysicsObject::SetCollisionHints(uint32 collisionHints)
+{
+    m_collisionHints = collisionHints;
+}
+
+uint32 CPhysicsObject::GetCollisionHints() const
+{
+    return m_collisionHints;
+}
+
+IPredictedPhysicsObject* CPhysicsObject::GetPredictedInterface() const
+{
+    // only relevant for PredictedPhysicsObjects
+    return nullptr;
+}
+
+void CPhysicsObject::SyncWith(IPhysicsObject *pOther)
+{
+    bool otherColl = pOther->IsCollisionEnabled();
+    bool otherGrav = pOther->IsGravityEnabled();
+    bool otherDrag = pOther->IsDragEnabled();
+    bool otherMotion = pOther->IsMotionEnabled();
+
+    bool thisColl = this->IsCollisionEnabled();
+    bool thisGrav = this->IsGravityEnabled();
+    bool thisDrag = this->IsDragEnabled();
+    bool thisMotion = this->IsMotionEnabled();
+
+    if( thisColl != otherColl || thisGrav != otherGrav || thisDrag != otherDrag || ( (otherMotion ^ thisMotion) != 0 ) )
+    {
+        this->EnableCollisions( otherColl );
+        this->EnableGravity( otherGrav );
+        this->EnableDrag( otherDrag );
+        this->EnableMotion( otherMotion );
+    }
+}
+//lwss end
 
 // UNEXPOSED
 // Purpose: Constraints will call this when we're one of the constrained objects.
@@ -1338,7 +1413,7 @@ CPhysicsObject *CreatePhysicsSphere(CPhysicsEnvironment *pEnvironment, float rad
 
 		volume = pParams->volume;
 		if (volume <= 0) {
-			pParams->volume = (4 / 3) * M_PI_F * radius * radius * radius;
+			pParams->volume = (4.0f / 3.0f) * M_PI_F * radius * radius * radius;
 		}
 	}
 

@@ -7,19 +7,21 @@
 #include "Physics_ObjectPairHash.h"
 #include "Physics_CollisionSet.h"
 
+#include <engine/ivdebugoverlay.h>
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar vphysics_bulletdebugoutput("vphysics_bulletdebugoutput", "0", FCVAR_ARCHIVE);
+ConVar bt_debugoutput("bt_debugoutput", "0", FCVAR_ARCHIVE);
 
 void btDebugMessage(const char *str) {
-	if (vphysics_bulletdebugoutput.GetBool()) {
-		Msg("%s", str);
+	if (bt_debugoutput.GetBool()) {
+		Msg("[BulletPhysics]%s", str);
 	}
 }
 
 void btDebugWarning(const char *str) {
-	Warning("%s", str);
+	Warning("[BulletPhysics]%s", str);
 }
 
 /******************
@@ -35,8 +37,26 @@ CPhysics::~CPhysics() {
 #endif
 }
 
+//lwss add
+bool CPhysics::Connect(CreateInterfaceFn factory)
+{
+    if ( !BaseClass::Connect( factory ) )
+    {
+        return false;
+    }
+
+    this->m_pPhysicsDebugOverlay = ( IVPhysicsDebugOverlay * )factory( VPHYSICS_DEBUG_OVERLAY_INTERFACE_VERSION, NULL );
+
+    return true;
+}
+
+void CPhysics::Disconnect()
+{
+    BaseClass::Disconnect();
+}
+//lwss end
 InitReturnVal_t CPhysics::Init() {
-	InitReturnVal_t nRetVal = BaseClass::Init();
+	const InitReturnVal_t nRetVal = BaseClass::Init();
 	if (nRetVal != INIT_OK) return nRetVal;
 
 	// Hook up our debug output functions
@@ -51,7 +71,7 @@ void CPhysics::Shutdown() {
 }
 
 void *CPhysics::QueryInterface(const char *pInterfaceName) {
-	CreateInterfaceFn func = Sys_GetFactoryThis();
+	const CreateInterfaceFn func = Sys_GetFactoryThis();
 	if (!func)
 		return NULL;
 
@@ -66,7 +86,7 @@ IPhysicsEnvironment *CPhysics::CreateEnvironment() {
 
 void CPhysics::DestroyEnvironment(IPhysicsEnvironment *pEnvironment) {
 	m_envList.FindAndRemove(pEnvironment);
-	delete (CPhysicsEnvironment *)pEnvironment;
+	delete dynamic_cast<CPhysicsEnvironment*>(pEnvironment);
 }
 
 IPhysicsEnvironment *CPhysics::GetActiveEnvironmentByIndex(int index) {
@@ -83,17 +103,17 @@ IPhysicsObjectPairHash *CPhysics::CreateObjectPairHash() {
 }
 
 void CPhysics::DestroyObjectPairHash(IPhysicsObjectPairHash *pHash) {
-	delete (CPhysicsObjectPairHash *)pHash;
+	delete dynamic_cast<CPhysicsObjectPairHash*>(pHash);
 }
 
-IPhysicsCollisionSet *CPhysics::FindOrCreateCollisionSet(unsigned int id, int maxElementCount) {
+IPhysicsCollisionSet *CPhysics::FindOrCreateCollisionSet( uintptr_t id, int maxElementCount) {
 	if (m_colSetTable.Find(id) != m_colSetTable.InvalidHandle())
 		return m_collisionSets[m_colSetTable.Element(m_colSetTable.Find(id))];
 
 	CPhysicsCollisionSet *set = NULL;
-	if (maxElementCount < sizeof(int) * 8) { // Limit of 32 because of the way this works internally
+	if (maxElementCount < static_cast<int>(sizeof(int)) * 8) { // Limit of 32 because of the way this works internally
 		set = ::CreateCollisionSet(maxElementCount);
-		int vecId = m_collisionSets.AddToTail(set);
+		const int vecId = m_collisionSets.AddToTail(set);
 
 		m_colSetTable.Insert(id, vecId);
 	}
@@ -101,7 +121,7 @@ IPhysicsCollisionSet *CPhysics::FindOrCreateCollisionSet(unsigned int id, int ma
 	return set;
 }
 
-IPhysicsCollisionSet *CPhysics::FindCollisionSet(unsigned int id) {
+IPhysicsCollisionSet *CPhysics::FindCollisionSet( uintptr_t id) {
 	if (m_colSetTable.Find(id) != m_colSetTable.InvalidHandle())
 		return m_collisionSets[m_colSetTable.Element(m_colSetTable.Find(id))];
 
@@ -110,7 +130,7 @@ IPhysicsCollisionSet *CPhysics::FindCollisionSet(unsigned int id) {
 
 void CPhysics::DestroyAllCollisionSets() {
 	for (int i = 0; i < m_collisionSets.Count(); i++)
-		delete (CPhysicsCollisionSet *)m_collisionSets[i];
+		delete dynamic_cast<CPhysicsCollisionSet*>(m_collisionSets[i]);
 
 	m_collisionSets.RemoveAll();
 	m_colSetTable.RemoveAll();

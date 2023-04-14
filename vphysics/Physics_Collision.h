@@ -136,6 +136,13 @@ class CPhysicsCollision : public IPhysicsCollision32 {
 		float					CollideSurfaceArea(CPhysCollide *pCollide);
 		Vector					CollideGetExtent(const CPhysCollide *pCollide, const Vector &collideOrigin, const QAngle &collideAngles, const Vector &direction);
 		void					CollideGetAABB(Vector *pMins, Vector *pMaxs, const CPhysCollide *pCollide, const Vector &collideOrigin, const QAngle &collideAngles);
+        // lwss - ADDED, these are all new for CSGO
+        virtual float           CollideGetRadius( const CPhysCollide *pCollide );
+        virtual void			*VCollideAllocUserData( vcollide_t *pVCollide, size_t userDataSize );
+        virtual void			VCollideFreeUserData( vcollide_t *pVCollide );
+        virtual void			VCollideCheck( vcollide_t *pVCollide, const char *pName );
+        virtual bool			TraceBoxAA( const Ray_t &ray, const CPhysCollide *pCollide, trace_t *ptr );
+        // lwss end
 		void					CollideGetMassCenter(CPhysCollide *pCollide, Vector *pOutMassCenter);
 		void					CollideSetMassCenter(CPhysCollide *pCollide, const Vector &massCenter);
 		Vector					CollideGetOrthographicAreas(const CPhysCollide *pCollide);
@@ -178,7 +185,9 @@ class CPhysicsCollision : public IPhysicsCollision32 {
 		void					VCollideUnload(vcollide_t *pVCollide);
 
 		IVPhysicsKeyParser *	VPhysicsKeyParserCreate(const char *pKeyData);
-		void					VPhysicsKeyParserDestroy(IVPhysicsKeyParser *pParser);
+        IVPhysicsKeyParser *    VPhysicsKeyParserCreate( vcollide_t *pVCollide ); // lwss - NEW for csgo
+
+        void					VPhysicsKeyParserDestroy(IVPhysicsKeyParser *pParser);
 
 		int						CreateDebugMesh(CPhysCollide const *pCollisionModel, Vector **outVerts);
 		void					DestroyDebugMesh(int vertCount, Vector *outVerts);
