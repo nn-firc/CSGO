@@ -63,6 +63,5 @@ def build(bld):
 	bld.stlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
-		install_path = bld.env.LIBDIR,
 		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)
