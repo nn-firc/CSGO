@@ -35,7 +35,11 @@ SUBDIRS = [
 	Subproject('tier3'),
 	Subproject('interfaces'),
 	Subproject('vstdlib'),
-	Subproject('mathlib')
+	Subproject('mathlib'),
+	Subproject('bullet/BulletDynamics'),
+	Subproject('bullet/BulletSoftBody'),
+	Subproject('bullet/BulletCollision'),
+	Subproject('bullet/LinearMath')
 ]
 
 def options(opt):

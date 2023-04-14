@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+def options(opt):
+	pass
+
+def configure(conf):
+	conf.define('BT_THREADSAFE',1)
+
+def build(bld):
+	SRCS = [
+		'Character/btKinematicCharacterController.cpp',
+		'ConstraintSolver/btConeTwistConstraint.cpp',
+		'ConstraintSolver/btContactConstraint.cpp',
+		'ConstraintSolver/btFixedConstraint.cpp',
+		'ConstraintSolver/btGearConstraint.cpp',
+		'ConstraintSolver/btGeneric6DofConstraint.cpp',
+		'ConstraintSolver/btGeneric6DofSpringConstraint.cpp',
+		'ConstraintSolver/btGeneric6DofSpring2Constraint.cpp',
+		'ConstraintSolver/btHinge2Constraint.cpp',
+		'ConstraintSolver/btHingeConstraint.cpp',
+		'ConstraintSolver/btPoint2PointConstraint.cpp',
+		'ConstraintSolver/btSequentialImpulseConstraintSolver.cpp',
+		'ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp',
+		'ConstraintSolver/btBatchedConstraints.cpp',
+		'ConstraintSolver/btNNCGConstraintSolver.cpp',
+		'ConstraintSolver/btSliderConstraint.cpp',
+		'ConstraintSolver/btSolve2LinearConstraint.cpp',
+		'ConstraintSolver/btTypedConstraint.cpp',
+		'ConstraintSolver/btUniversalConstraint.cpp',
+		'Dynamics/btDiscreteDynamicsWorld.cpp',
+		'Dynamics/btDiscreteDynamicsWorldMt.cpp',
+		'Dynamics/btSimulationIslandManagerMt.cpp',
+		'Dynamics/btRigidBody.cpp',
+		'Dynamics/btSimpleDynamicsWorld.cpp',
+		'Vehicle/btRaycastVehicle.cpp',
+		'Vehicle/btWheelInfo.cpp',
+		'Featherstone/btMultiBody.cpp',
+		'Featherstone/btMultiBodyConstraint.cpp',
+		'Featherstone/btMultiBodyConstraintSolver.cpp',
+		'Featherstone/btMultiBodyDynamicsWorld.cpp',
+		'Featherstone/btMultiBodyFixedConstraint.cpp',
+		'Featherstone/btMultiBodyGearConstraint.cpp',
+		'Featherstone/btMultiBodyJointLimitConstraint.cpp',
+		'Featherstone/btMultiBodyJointMotor.cpp',
+		'Featherstone/btMultiBodyMLCPConstraintSolver.cpp',
+		'Featherstone/btMultiBodyPoint2Point.cpp',
+		'Featherstone/btMultiBodySliderConstraint.cpp',
+		'Featherstone/btMultiBodySphericalJointMotor.cpp',
+		'Featherstone/btMultiBodySphericalJointLimit.cpp',
+		'MLCPSolvers/btDantzigLCP.cpp',
+		'MLCPSolvers/btMLCPSolver.cpp',
+		'MLCPSolvers/btLemkeAlgorithm.cpp'
+	]
+
+	INCS = [
+		'..'
+	]
+
+	bld.stlib(target = 'BulletDynamics',
+		features = 'cxx',
+		source = SRCS,
+		includes = INCS,
+		install_path = bld.env.LIBDIR,
+		subsystem = bld.env.MSVC_SUBSYSTEM)
