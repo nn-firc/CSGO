@@ -33,7 +33,6 @@
 
 #if defined( USE_SDL ) || defined(OSX) 
 	#include "appframework/ilaunchermgr.h"
-	ILauncherMgr *g_pLauncherMgr = NULL;
 #endif
 
 #define DEBUG_ALL_GLCALLS 0
@@ -102,38 +101,7 @@ bool g_bPrintOpenGLCalls = false;
 #undef GL_EXT
 #endif
 
-COpenGLEntryPoints *gGL = NULL;
 GL_GetProcAddressCallbackFunc_t gGL_GetProcAddressCallback = NULL;
-
-void *VoidFnPtrLookup_GlMgr( const char *libname, const char *fn, bool &okay, const bool bRequired, void *fallback)
-{
-	void *retval = NULL;
-	if ((!okay) && (!bRequired))  // always look up if required (so we get a complete list of crucial missing symbols).
-		return NULL;
-	// The SDL path would work on all these platforms, if we were using SDL there, too...
-#if defined( LINUX ) || defined( WIN32 )
-	// SDL does the right thing, so we never need to use tier0 in this case.
-	retval = (*gGL_GetProcAddressCallback)( libname, fn, okay, bRequired, fallback); //SDL_GL_GetProcAddress(fn);
-	//printf("CDynamicFunctionOpenGL: SDL_GL_GetProcAddress(\"%s\") returned %p\n", fn, retval);
-	if ((retval == NULL) && (fallback != NULL))
-	{
-		//printf("CDynamicFunctionOpenGL: Using fallback %p for \"%s\"\n", fallback, fn);
-		retval = fallback;
-	}
-#elif defined OSX
-	// there's no glXGetProcAddress() equivalent for Mac OS X...it's just dlopen(), basically. Let tier0 handle that.
-    retval = VoidFnPtrLookup_Tier0( libname, fn, (void *) fallback);
-#endif
-
-	// Note that a non-NULL response doesn't mean it's safe to call the function!
-	//  You always have to check that the extension is supported;
-	//  an implementation MAY return NULL in this case, but it doesn't have to (and doesn't, with the DRI drivers).
-	okay = (okay && (retval != NULL));
-	if (bRequired && !okay)
-		fprintf(stderr, "Could not find required OpenGL entry point '%s'!\n", fn);
-
-	return retval;
-}
 
 COpenGLEntryPoints *GetOpenGLEntryPoints(GL_GetProcAddressCallbackFunc_t callback)
 {

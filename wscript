@@ -36,6 +36,8 @@ SUBDIRS = [
 	Subproject('interfaces'),
 	Subproject('vstdlib'),
 	Subproject('mathlib'),
+	Subproject('appframework'),
+	Subproject('togl'),
 	Subproject('vphysics'),
 	Subproject('bullet/BulletDynamics'),
 	Subproject('bullet/BulletCollision'),
