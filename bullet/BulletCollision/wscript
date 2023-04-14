@@ -7,6 +7,8 @@ def configure(conf):
 	conf.define('BT_THREADSAFE',1)
 
 def build(bld):
+	PROJECT = 'BulletCollision'
+
 	SRCS = [
 		'BroadphaseCollision/btAxisSweep3.cpp',
 		'BroadphaseCollision/btBroadphaseProxy.cpp',
@@ -111,9 +113,10 @@ def build(bld):
 		'..'
 	]
 
-	bld.stlib(target = 'BulletCollision',
+	bld.stlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		includes = INCS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)

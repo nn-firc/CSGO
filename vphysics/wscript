@@ -7,8 +7,9 @@ def configure(conf):
 	conf.define('BT_THREADSAFE',1)
 
 def build(bld):
-	SRCS = bld.path.ant_glob('*.cpp')
-	SRCS += ['../public/tier0/memoverride.cpp']
+	PROJECT = 'vphysics'
+
+	SRCS = bld.path.ant_glob('*.cpp') + ['../public/tier0/memoverride.cpp']
 
 	INCS = [
 		'../bullet'
@@ -29,10 +30,11 @@ def build(bld):
 	]
 
 
-	bld.shlib(target = 'vphysics',
+	bld.shlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		includes = INCS,
 		use = LIBS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)

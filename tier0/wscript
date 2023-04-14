@@ -8,6 +8,8 @@ def configure(conf):
 	conf.define('CROSS_PLATFORM_VERSION',1)
 
 def build(bld):
+	PROJECT = 'tier0'
+
 	SRCS = [
 		'../unitlib/unitlib.cpp',
 		'assert_dialog.cpp',
@@ -51,8 +53,9 @@ def build(bld):
 			'pme_posix.cpp'
 		]
 
-	bld.shlib(target = 'tier0',
+	bld.shlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)

@@ -7,12 +7,15 @@ def configure(conf):
 	pass
 
 def build(bld):
+	PROJECT = 'interfaces'
+
 	SRCS = [
 		'interfaces.cpp'
 	]
 
-	bld.stlib(target = 'interfaces',
+	bld.stlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)

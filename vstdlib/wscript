@@ -7,6 +7,8 @@ def configure(conf):
 	conf.define('VSTDLIB_DLL_EXPORT',1)
 
 def build(bld):
+	PROJECT = 'vstdlib'
+
 	SRCS = [
 		'coroutine.cpp',
 		'cvar.cpp',
@@ -26,9 +28,10 @@ def build(bld):
 		'interfaces'
 	]
 
-	bld.shlib(target = 'vstdlib',
+	bld.shlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		use = LIBS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)

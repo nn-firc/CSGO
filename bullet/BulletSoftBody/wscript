@@ -7,6 +7,8 @@ def configure(conf):
 	conf.define('BT_THREADSAFE',1)
 
 def build(bld):
+	PROJECT = 'BulletSoftBody'
+
 	SRCS = [
 		'btSoftBody.cpp',
 		'btSoftBodyConcaveCollisionAlgorithm.cpp',
@@ -34,9 +36,10 @@ def build(bld):
 		'..'
 	]
 
-	bld.stlib(target = 'LinearMath',
+	bld.stlib(target = PROJECT,
 		features = 'cxx',
 		source = SRCS,
 		includes = INCS,
 		install_path = bld.env.LIBDIR,
+		idx = PROJECT,
 		subsystem = bld.env.MSVC_SUBSYSTEM)
